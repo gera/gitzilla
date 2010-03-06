@@ -1,0 +1,90 @@
+
+# The gitzilla config file.
+# This file is in the ConfigParser format. This is something like:
+#
+# [Section_Name]
+# item: value
+# another_item: value2
+#
+
+
+# Each git repository should have it's own section. The global config
+# at /etc/gitzillarc MUST specify bugzilla_url, bugzilla_user and
+# bugzilla_password
+#
+# The bugzilla_user and bugzilla_password may be overridden by user
+# specific config files at ~/.gitzillarc
+#
+# Note that the global config would be readable by all and is required
+# to contain a username/password for bugzilla. If you think this is a
+# problem, you could put in dummy values. In that case however, users
+# MUST put their own credentials in their ~/.gitzillarc files if the
+# update hook is being used with the allowed_bug_states option set. If
+# that is not the case, users can get away by not having their
+# credentials available, and their commits would not show up in bugziila
+# comments.
+#
+# The format of the user specific files is the same, and they must
+# have a section for each repository to be configured.
+#
+# Mandatory values for /etc/gitzillarc:
+#
+#  * bugzilla_url
+#  * bugzilla_user
+#  * bugzilla_password
+#
+#
+# Optional values for /etc/gitzillarc:
+#
+#  * allowed_bug_states
+#
+#      a comma separated set of states that a bug must be in, in order
+#      for the commit to be allowed by the update hook. If this is set,
+#      working bugzilla credentials are required.
+#
+#  * formatspec
+#
+#      appended to '--format=format:' in 'git whatchanged'. See the
+#      'git whatchanged' manpage for more info.
+#
+#  * separator
+#
+#      a string which would never occur in commit messages. You should
+#      not need to set this, as it is already at a dafe default.
+#
+#  * bug_regex
+#
+#      the (Python) regex for capturing bug numbers. MUST capture all
+#      the digits of the bug id in a named group called 'bug'. This
+#      regex is compiled internally with the MULTILINE, DOTALL, and
+#      IGNORECASE options set. The default regex captures the
+#      following forms:
+#          - bug 123
+#          - Bug # 123
+#          - BUG123
+#          - bug# 123
+#          - Bug #123
+#
+#  * logfile
+#
+#      the file to log to. Must be writable by the uid of the git
+#      process. In case of ssh pushes, it usually means that it should
+#      be writable by all.
+#
+#  * loglevel
+#
+#      can be 'info' or 'debug' - defaults to 'debug'.
+#
+#
+#
+# The user specific files are entirely optional. The only values
+# they override are bugzilla_user and bugzilla_password.
+#
+
+# sample configuration:
+#
+# [/path/to/repository/.git]
+# bugzilla_url: https://repo.example.com/bugzilla/
+# bugzilla_user: foo@example.com
+# bugzilla_password: barbarblah
+

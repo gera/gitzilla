@@ -1,0 +1,4 @@
+include *.txt
+include *.py
+recursive-include etc *
+
