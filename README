@@ -32,7 +32,16 @@ To quickly start using GitZilla:
         ln -s $(which gitzilla-post-receive) post-receive
         ln -s $(which gitzilla-update) update
 
-  * Read and edit the config file at /etc/gitzillarc
+  * Read and edit the config file at /etc/gitzillarc. A simple (and sufficient
+    for most cases) configuration is something like::
+
+        [/path/to/repository/.git]
+        bugzilla_url: https://repo.example.com/bugzilla/
+        bugzilla_user: foo@example.com
+        bugzilla_password: blahblah
+        allowed_bug_states: NEW, ASSIGNED, REOPENED
+
+    (and even the last item is optional!)
 
   * Commit away!
 
