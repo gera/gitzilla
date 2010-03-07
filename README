@@ -1,4 +1,5 @@
 
+========
 GitZilla
 ========
 
@@ -8,6 +9,10 @@ various ways of using GitZilla.
 Note that GitZilla must be installed on the machine receiving commits from
 everyone - home to the the "official" or the "central" repository.
 
+
+Usage
+.....
+
 Simple ready scripts
 --------------------
 
@@ -15,14 +20,14 @@ To quickly start using GitZilla:
 
   * Install GitZilla. You may choose the .deb for easy installation on
     Debian/Ubuntu systems. Otherwise, just unpack the source and install in
-    the usual setuptools way:
+    the usual setuptools way::
 
         sudo python setup.py install
 
   * Switch to the hooks directory (/path/to/repository/.git/hooks) and delete
     the 'post-receive' and 'update' hooks.
 
-  * Link (or copy) the gitzilla provided hooks:
+  * Link (or copy) the gitzilla provided hooks::
 
         ln -s $(which gitzilla-post-receive) post-receive
         ln -s $(which gitzilla-update) update
@@ -35,7 +40,66 @@ To quickly start using GitZilla:
 Custom GitZilla
 ---------------
 
-Coming soon. Till then, import the modules gitzilla and gitzilla.hooks in a
-python interactive shell and dooc at the module help.
+If you need the hooks to do other stuff apart from just the Bugzilla
+integration, you could write your hook as a Python script and leave the
+Bugzilla stuff to one of the functions from 'gitzilla.hooks'.
+
+In fact with the defaults, the ready scripts are equivalent to the following:
+
+post-receive::
+
+    #!/usr/bin/python
+    from gitzilla.hooks import post_receive
+    post_receive("https://repo.example.com/bugzilla", "username", "password")
+
+
+update::
+
+    #!/usr/bin/python
+    from gitzilla.hooks import update
+    update()
+
+The provided ready scripts do more, but that's just parsing and picking up
+values from the configuration files.
+
+You could pass a custom bug id extraction regex and your own logging.Logger
+instance. The update hook function also accepts an array of allowed bug status
+strings. If that is provided, bugzilla credentials MUST be provided as well.
+
+Look at the module help for gitzilla.hooks for more information.
+
+
+Down and dirty
+--------------
+
+This is an internal-only mode for now. More info when this is stable.
+
+
+Requirements
+............
+
+To install and run GitZilla, you need:
+
+  - Python (tested with 2.6.4, should work with >=2.5)
+  - pybugz (tested with 0.8.0)
+
+Of course, to make it useful you also need a Bugzilla installation somewhere
+(not required to be on the same machine). GitZilla has been tested with
+Bugzilla 3.0.11 and should work with any Bugzilla version supported by pybugz.
+
+The excellent pybugz can be obtained from http://github.com/ColdWind/pybugz/
+and http://github.com/ColdWind/pybugz/downloads/
+
+
+Download
+........
+
+GitZilla is hosted at GitHub : http://github.com/gera/gitzilla
+
+You can access the downloads at : http://github.com/gera/gitzilla/downloads
+
+The download page contains a .deb which should work on Debian and Ubuntu
+systems.
+
 
 
