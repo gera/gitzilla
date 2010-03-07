@@ -8,7 +8,7 @@
 #
 
 
-# Each git repository should have it's own section. The global config
+# Each git repository should have its own section. The global config
 # at /etc/gitzillarc MUST specify bugzilla_url, bugzilla_user and
 # bugzilla_password
 #
@@ -50,13 +50,13 @@
 #  * separator
 #
 #      a string which would never occur in commit messages. You should
-#      not need to set this, as it is already at a dafe default.
+#      not need to set this, as it is already at a safe default.
 #
 #  * bug_regex
 #
 #      the (Python) regex for capturing bug numbers. MUST capture all
 #      the digits of the bug id in a named group called 'bug'. This
-#      regex is compiled internally with the MULTILINE, DOTALL, and
+#      regex is compiled internally with the MULTILINE, DOTALL and
 #      IGNORECASE options set. The default regex captures the
 #      following forms:
 #          - bug 123
@@ -68,7 +68,7 @@
 #  * logfile
 #
 #      the file to log to. Must be writable by the uid of the git
-#      process. In case of ssh pushes, it usually means that it should
+#      process. In case of ssh pushes, that usually means that it should
 #      be writable by all.
 #
 #  * loglevel

@@ -25,7 +25,7 @@ To quickly start using GitZilla:
         sudo python setup.py install
 
   * Switch to the hooks directory (/path/to/repository/.git/hooks) and delete
-    the 'post-receive' and 'update' hooks.
+    the ``post-receive`` and ``update`` hooks.
 
   * Link (or copy) the gitzilla provided hooks::
 
@@ -42,7 +42,7 @@ Custom GitZilla
 
 If you need the hooks to do other stuff apart from just the Bugzilla
 integration, you could write your hook as a Python script and leave the
-Bugzilla stuff to one of the functions from 'gitzilla.hooks'.
+Bugzilla stuff to one of the functions from ``gitzilla.hooks``.
 
 In fact with the defaults, the ready scripts are equivalent to the following:
 
@@ -73,6 +73,114 @@ Down and dirty
 --------------
 
 This is an internal-only mode for now. More info when this is stable.
+
+
+Configuration
+.............
+
+GitZilla uses a global configuration file (at /etc/gitzillarc) as well as
+per-user configuration files (at ~/.gitzillarc). All the configuration options
+are picked up from the global config file, and the user specific config is
+allowed to override **only** the ``bugzilla_user`` and ``bugzilla_password``
+parameters.
+
+The configuration files themselves are in the ConfigParser format (see
+http://docs.python.org/library/configparser.html). A sample configuration
+looks like::
+
+    [/path/to/repository/.git]
+    bugzilla_url: https://repo.example.com/bugzilla/
+    bugzilla_user: foo@example.com
+    bugzilla_password: blahblah
+    allowed_bug_states: NEW, ASSIGNED, REOPENED
+    logfile: /var/log/gitzilla.log
+    loglevel: info
+
+
+Each git repository on the system MUST have its own section. The global config
+MUST specify the ``bugzilla_url``, ``bugzilla_user`` and ``bugzilla_password``
+parameters.
+
+The user specific files are entirely optional.
+
+Mandatory parameters
+--------------------
+
+  - bugzilla_url
+  - bugzilla_user
+  - bugzilla_password
+
+
+Optional parameters
+-------------------
+
+  - allowed_bug_states
+
+        a comma separated set of states that a bug must be in, in order for
+        the commit to be allowed by the update hook. If this is set, working
+        bugzilla credentials are required (see security note).
+
+  - formatspec
+
+        appended to ``--format=format:`` and passed to ``git whatchanged``.
+        See the ``git whatchanged`` manpage for more info.
+
+  - separator
+
+        a string which would never occur in commit messages. You should not
+        need to set this, as it is already at a safe default.
+
+  - bug_regex
+
+	the (Python) regex for capturing bug numbers. MUST capture all the
+        digits (and only the digits) of the bug id in a named group called
+	``bug``. This regex is compiled internally with the MULTILINE, DOTALL
+	and IGNORECASE options set. The default regex captures from the
+        following forms:
+
+          * bug 123
+          * Bug # 123
+          * BUG123
+          * bug# 123
+          * Bug #123
+
+  - logfile
+
+        the file to log to. MUST be writable by the uid of the git process. In
+        case of ssh pushes, tha usually means it should be writable by all.
+
+  - loglevel
+
+        can be ``info`` or ``debug``. Defaults to ``debug``.
+
+
+Security note
+-------------
+
+Note that the global config would be readable by all and is required to
+contain a username/password for bugzilla. If you think this is a problem, you
+could put in dummy values. In that case however, users MUST put their own
+credentials in their ~/.gitzillarc files if the update hook is being used with
+the ``allowed_bug_states`` option set. If that is not the case, users can get
+away by not having their credentials available, and their commits would not
+show up in bugziila comments.
+
+To summarize:
+
+  - Either put working Bugzilla credentials in the global config. These will
+    be used when the users don't provide with their own via the user specific
+    files.
+
+  - If putting in Bugzilla credentials is seen as a risk, or if the users are
+    to be forced to provide their own credentials via ~/.gitzillarc, you MUST
+    use the update hook with the ``allowed_bug_states`` option set to some bug
+    statuses.
+
+  - If /etc/gitzillarc does not have correct Bugzilla credentials and the
+    update hook is not used with the ``allowed_bug_states`` option set, users
+    who do not provide correct credentials via ~/.gitzillarc will be able to
+    skip the Bugzilla comment addition step. Their commits will still be
+    accepted though (depending on the update hook).
 
 
 Requirements
