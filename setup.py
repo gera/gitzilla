@@ -21,6 +21,7 @@ args = dict(
     'console_scripts': [
       'gitzilla-post-receive = gitzilla.hookscripts:post_receive',
       'gitzilla-update = gitzilla.hookscripts:update',
+      'gitzilla-gencookie = gitzilla.utilscripts:generate_cookiefile',
     ],
   }
 )
