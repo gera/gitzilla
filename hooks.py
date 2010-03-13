@@ -6,14 +6,13 @@ hooks - git hooks provided by gitzilla.
 
 import re
 import sys
-from utils import get_changes, post_to_bugzilla, get_bug_status, notify_and_exit
+from utils import get_changes, init_bugzilla, get_bug_status, notify_and_exit
 from gitzilla import sDefaultSeparator, sDefaultFormatSpec, oDefaultBugRegex
 from gitzilla import NullLogger
-import bugz.bugzilla
 import traceback
 
 
-def post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec=None, oBugRegex=None, sSeparator=None, logger=None):
+def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugRegex=None, sSeparator=None, logger=None, bz_init=None):
   """
   a post-recieve hook handler which extracts bug ids and adds the commit
   info to the comment. If multiple bug ids are found, the comment is added
@@ -49,6 +48,9 @@ def post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec=None, oBugRegex=None, s
   If a logger is provided, it would be used for all the logging. If logger
   is None, logging will be disabled. The logger must be a Python
   logging.Logger instance.
+
+  The function bz_init(url, username, password) is invoked to instantiate the
+  bugz.bugzilla.Bugz instance. If this is None, the default method is used.
   """
   if sFormatSpec is None:
     sFormatSpec = sDefaultFormatSpec
@@ -61,6 +63,11 @@ def post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec=None, oBugRegex=None, s
 
   if logger is None:
     logger = NullLogger
+
+  if bz_init is None:
+    bz_init = init_bugzilla
+
+  oBZ = bz_init(sBZUrl, sBZUser, sBZPasswd)
 
   sPrevRev = None
   for sLine in iter(sys.stdin.readline, ""):
@@ -80,13 +87,13 @@ def post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec=None, oBugRegex=None, s
         iBugId = int(oMatch.group("bug"))
         logger.debug("Found bugid %d" % (iBugId,))
         try:
-          post_to_bugzilla(iBugId, sMessage, sBZUrl, sBZUser, sBZPasswd)
+          oBZ.modify(iBugId, comment=sMessage)
         except Exception, e:
           logger.exception("Could not add comment to bug %d" % (iBugId,))
 
 
 
-def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None, sBZUser=None, sBZPasswd=None, logger=None):
+def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None, sBZUser=None, sBZPasswd=None, logger=None, bz_init=None):
   """
   an update hook handler which rejects commits without a bug reference.
   This looks at the sys.argv array, so make sure you don't modify it before
@@ -114,12 +121,15 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
   If sSeparator is None, a default separator is used, which should be
   good enough for everyone.
 
-  If status checking is enabled, sBZUrl specifies the base URL for the
-  Bugzilla installation.
+  sBZUrl specifies the base URL for the Bugzilla installation.  sBZUser and
+  sBZPasswd are the bugzilla credentials.
 
   If a logger is provided, it would be used for all the logging. If logger
   is None, logging will be disabled. The logger must be a Python
   logging.Logger instance.
+
+  The function bz_init(url, username, password) is invoked to instantiate the
+  bugz.bugzilla.Bugz instance. If this is None, the default method is used.
   """
   if oBugRegex is None:
     oBugRegex = oDefaultBugRegex
@@ -130,6 +140,9 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
   if logger is None:
     logger = NullLogger
 
+  if bz_init is None:
+    bz_init = init_bugzilla
+
   sFormatSpec = sDefaultFormatSpec
 
   if asAllowedStatuses is not None:
@@ -138,7 +151,8 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
       raise ValueError("Bugzilla info required for status checks")
 
   # create and cache bugzilla instance
-  oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
+  oBZ = bz_init(sBZUrl, sBZUser, sBZPasswd)
+  # check auth
   try:
     oBZ.auth()
   except:

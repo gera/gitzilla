@@ -34,6 +34,20 @@ def execute(asCommand, bSplitLines=False, bIgnoreErrors=False):
   return data
 
 
+def init_bugzilla(sBZUrl, sBZUser, sBZPasswd):
+  """
+  initializes and returns a bugz.bugzilla.Bugz instance.
+
+  This may be overridden in custom hook scripts in order to expand auth
+  support.
+  """
+  if sBZUrl is None:
+    raise ValueError("No Bugzilla URL specified")
+
+  oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
+  return oBZ
+
+
 
 def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator):
   """
