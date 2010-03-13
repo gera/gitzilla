@@ -137,8 +137,13 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
     if sBZUrl is None:
       raise ValueError("Bugzilla info required for status checks")
 
-    # create and cache bugzilla instance
-    oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
+  # create and cache bugzilla instance
+  oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
+  try:
+    oBZ.auth()
+  except:
+    logger.error("Could not login to Bugzilla", exc_info=1)
+    notify_and_exit("Could not login to Bugzilla. Check your auth details and settings")
 
   (sOldRev, sNewRev) = sys.argv[2:4]
   logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
