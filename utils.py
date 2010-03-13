@@ -54,9 +54,8 @@ def post_to_bugzilla(iBugId, sComment, sBZUrl, sBZUser, sBZPasswd):
   """
   posts the comment to the given bug id.
   """
-  for item in (sBZUrl, sBZUser, sBZPasswd):
-    if item is None:
-      raise ValueError("Bad bugzilla info")
+  if sBZUrl is None:
+    raise ValueError("No Bugzilla URL specified")
 
   oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
   oBZ.modify(iBugId, comment=sComment)

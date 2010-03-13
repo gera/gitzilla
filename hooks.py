@@ -19,7 +19,8 @@ def post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec=None, oBugRegex=None, s
   info to the comment. If multiple bug ids are found, the comment is added
   to each of those bugs.
 
-  sBZUrl is the base URL for the Bugzilla installation.
+  sBZUrl is the base URL for the Bugzilla installation. If sBZUser and
+  sBZPasswd are None, then it uses the ~/.bugz_cookie cookiejar.
 
   oBugRegex specifies the regex used to search for the bug id in the commit
   messages. It MUST provide a named group called 'bug' which contains the bug
@@ -133,9 +134,8 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
 
   if asAllowedStatuses is not None:
     # sanity checking
-    for item in (sBZUrl, sBZUser):
-      if item is None:
-        raise ValueError("Bugzilla info required for status checks")
+    if sBZUrl is None:
+      raise ValueError("Bugzilla info required for status checks")
 
     # create and cache bugzilla instance
     oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
