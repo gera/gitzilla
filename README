@@ -101,6 +101,7 @@ looks like::
     bugzilla_url: https://repo.example.com/bugzilla/
     bugzilla_user: foo@example.com
     bugzilla_password: blahblah
+    user_config: deny
     allowed_bug_states: NEW, ASSIGNED, REOPENED
     logfile: /var/log/gitzilla.log
     loglevel: info
@@ -116,18 +117,28 @@ Mandatory parameters
 --------------------
 
   - bugzilla_url
-  - bugzilla_user
-  - bugzilla_password
 
 
 Optional parameters
 -------------------
 
+  - bugzilla_user
+
+        the default username for Bugzilla.
+
+  - bugzilla_password
+
+        the default password for Bugzilla.
+
+  - user_config
+
+	allow/deny user specific bugzilla credentials. The legal values are
+	``allow``, ``deny`` and ``force``. Defaults to ``allow``.
+
   - allowed_bug_states
 
         a comma separated set of states that a bug must be in, in order for
-        the commit to be allowed by the update hook. If this is set, working
-        bugzilla credentials are required (see security note).
+        the commit to be allowed by the update hook.
 
   - formatspec
 
@@ -166,30 +177,43 @@ Optional parameters
 Security note
 -------------
 
-Note that the global config would be readable by all and is required to
-contain a username/password for bugzilla. If you think this is a problem, you
-could put in dummy values. In that case however, users MUST put their own
-credentials in their ~/.gitzillarc files if the update hook is being used with
-the ``allowed_bug_states`` option set. If that is not the case, users can get
-away by not having their credentials available, and their commits would not
-show up in bugziila comments.
+Note that the global config would be readable by all and may contain a bugzilla
+credentials. If you think this is a problem, you may rely on per-user auth.
+
+If the ``user_config`` option is set to ``allow`` or ``force``, then auth
+credentials are picked up from the user specific ``~/.gitzillarc`` file.
+
+If the ``user_config`` option is ``force`` and the ``~/.gitzillarc`` does not
+contain bugzilla credentials, then the ``~/.bugz_cookie`` file is used for
+authentication. To generate a cookie file, a user may use the
+``gitzilla-gencookie`` script. The cookie validity will of course be dependent
+on your Bugzilla configuration. If neither credentials nor the cookie file are
+present (and valid), Bugzilla interactions will fail and the commits will be
+rejected.
+
+If the ``user_config`` option is ``allow``, then user specific credentials are
+used if available. Only if credentials are unavailable in both the
+user-specific as well as the systemwide configs, the cookie file is used. This
+configuration is the default because of the closeness of behaviour from version
+1.0.
+
 
 To summarize:
 
-  - Either put working Bugzilla credentials in the global config. These will
-    be used when the users don't provide with their own via the user specific
-    files.
+  - To allow (but not force) users to use their own auth/credentials set
+    ``user_config``  to ``allow`` and set ``bugzilla_user`` and
+    ``bugzilla_password`` in the system wide config.
 
-  - If putting in Bugzilla credentials is seen as a risk, or if the users are
-    to be forced to provide their own credentials via ~/.gitzillarc, you MUST
-    use the update hook with the ``allowed_bug_states`` option set to some bug
-    statuses.
+  - To enforce user credentials, set ``user_config`` to ``force`` and leave the
+    Bugzilla credentials out of the system wide config.
 
-  - If /etc/gitzillarc does not have correct Bugzilla credentials and the
-    update hook is not used with the ``allowed_bug_states`` option set, users
-    who do not provide correct credentials via ~/.gitzillarc will be able to
-    skip the Bugzilla comment addition step. Their commits will still be
-    accepted though (depending on the update hook).
+  - To use system wide credentials *only*, set ``user_config`` to ``deny``.
+
+  - To enforce Bugzilla integration, use the update hook. The update hook will
+    check the validity of the credentials (system or user, depending on the
+    config), regardless of the ``allowed_bug_states`` option. This is a change
+    in behaviour from version 1.0.
+
 
 
 Requirements

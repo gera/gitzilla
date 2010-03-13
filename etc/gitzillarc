@@ -15,14 +15,25 @@
 # The bugzilla_user and bugzilla_password may be overridden by user
 # specific config files at ~/.gitzillarc
 #
-# Note that the global config would be readable by all and is required
-# to contain a username/password for bugzilla. If you think this is a
-# problem, you could put in dummy values. In that case however, users
-# MUST put their own credentials in their ~/.gitzillarc files if the
-# update hook is being used with the allowed_bug_states option set. If
-# that is not the case, users can get away by not having their
-# credentials available, and their commits would not show up in bugziila
-# comments.
+# Note that the global config would be readable by all and may contain a bugzilla
+# credentials. If you think this is a problem, you may rely on per-user auth.
+#
+# If the user_config option is set to allow or force, then auth
+# credentials are picked up from the user specific ~/.gitzillarc file.
+#
+# If the user_config option is force and the ~/.gitzillarc does not
+# contain bugzilla credentials, then the ~/.bugz_cookie file is used for
+# authentication. To generate a cookie file, a user may use the
+# gitzilla-gencookie script. The cookie validity will of course be dependent
+# on your Bugzilla configuration. If neither credentials nor the cookie file are
+# present (and valid), Bugzilla interactions will fail and the commits will be
+# rejected.
+#
+# If the user_config option is allow, then user specific credentials are
+# used if available. Only if credentials are unavailable in both the
+# user-specific as well as the systemwide configs, the cookie file is used. This
+# configuration is the default because of the closeness of behaviour from version
+# 1.0.
 #
 # The format of the user specific files is the same, and they must
 # have a section for each repository to be configured.
@@ -30,11 +41,22 @@
 # Mandatory values for /etc/gitzillarc:
 #
 #  * bugzilla_url
-#  * bugzilla_user
-#  * bugzilla_password
 #
 #
 # Optional values for /etc/gitzillarc:
+#
+#  * bugzilla_user
+#
+#      the default username for Bugzilla.
+#
+#  * bugzilla_password
+#
+#      the default password for Bugzilla.
+#
+#  * user_config
+#
+#      allow/deny user specific Bugzilla credentials. The legal values
+#      are: 'allow', 'deny' and 'force'. Defaulst to 'allow'.
 #
 #  * allowed_bug_states
 #
@@ -87,4 +109,6 @@
 # bugzilla_url: https://repo.example.com/bugzilla/
 # bugzilla_user: foo@example.com
 # bugzilla_password: barbarblah
+# allowed_bug_states: NEW, ASSIGNED, REOPENED
+# user_config: deny
 
