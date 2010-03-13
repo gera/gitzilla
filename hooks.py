@@ -66,22 +66,22 @@ def post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec=None, oBugRegex=None, s
     (sOldRev, sNewRev, sRefName) = sLine.split(" ")
     if sPrevRev is None:
       sPrevRev = sOldRev
-    logger.debug("oldrev: '%s', newrev: '%s'", (sOldRev, sNewRev))
+    logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
     asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator)
 
     for sMessage in asChangeLogs:
-      logger.debug("Considering commit:\n%s", (sMessage,))
+      logger.debug("Considering commit:\n%s" % (sMessage,))
       oMatch = re.search(oBugRegex, sMessage)
       if oMatch is None:
-        logger.info("Bug id not found in commit:\n%s", (sMessage,))
+        logger.info("Bug id not found in commit:\n%s" % (sMessage,))
         continue
       for oMatch in re.finditer(oBugRegex, sMessage):
         iBugId = int(oMatch.group("bug"))
-        logger.debug("Found bugid %d", (iBugId,))
+        logger.debug("Found bugid %d" % (iBugId,))
         try:
           post_to_bugzilla(iBugId, sMessage, sBZUrl, sBZUser, sBZPasswd)
         except Exception, e:
-          logger.exception("Could not add comment to bug %d", (iBugId,))
+          logger.exception("Could not add comment to bug %d" % (iBugId,))
 
 
 
@@ -141,33 +141,32 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
     oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
 
   (sOldRev, sNewRev) = sys.argv[2:4]
-  logger.debug("oldrev: '%s', newrev: '%s'", (sOldRev, sNewRev))
+  logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
 
   asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator)
   
   for sMessage in asChangeLogs:
-    logger.debug("Checking for bug refs in commit:\n%s", (sMessage,))
+    logger.debug("Checking for bug refs in commit:\n%s" % (sMessage,))
     oMatch = re.search(oBugRegex, sMessage)
     if oMatch is None:
-      logger.error("No bug ref found in commit:\n%s", (sMessage,))
-      print "No bug ref found in commit:\n%s" % (sMessage,)
-      sys.exit(1)
+      logger.error("No bug ref found in commit:\n%s" % (sMessage,))
+      notify_and_exit("No bug ref found in commit:\n%s" % (sMessage,))
     else:
       if asAllowedStatuses is not None:
         # check all bug statuses
         for oMatch in re.finditer(oBugRegex, sMessage):
           iBugId = int(oMatch.group("bug"))
-          logger.debug("Found bug id %d", (iBugId,))
+          logger.debug("Found bug id %d" % (iBugId,))
           try:
             sStatus = get_bug_status(oBZ, iBugId)
             if sStatus is None:
               notify_and_exit("Bug %d does not exist" % (iBugId,))
           except Exception, e:
-            logger.exception("Could not get status for bug %d", (iBugId,))
+            logger.exception("Could not get status for bug %d" % (iBugId,))
             notify_and_exit("Could not get staus for bug %d" % (iBugId,))
 
-          logger.debug("status for bug %d is %s", (iBugId, sStatus))
+          logger.debug("status for bug %d is %s" % (iBugId, sStatus))
           if sStatus not in asAllowedStatuses:
-            logger.info("Cannot accept commit for bug %d in state %s", (iBugId, sStatus))
+            logger.info("Cannot accept commit for bug %d in state %s" % (iBugId, sStatus))
             notify_and_exit("Bug %d['%s'] is not in %s" % (iBugId, sStatus, asAllowedStatuses))
 
