@@ -131,8 +131,8 @@ Optional parameters
 
   - user_config
 
-	allow/deny user specific bugzilla credentials. The legal values are
-	``allow``, ``deny`` and ``force``. Defaults to ``allow``.
+        allow/deny user specific bugzilla credentials. The legal values are
+        ``allow``, ``deny`` and ``force``. Defaults to ``allow``.
 
   - allowed_bug_states
 
@@ -151,10 +151,10 @@ Optional parameters
 
   - bug_regex
 
-	the (Python) regex for capturing bug numbers. MUST capture all the
+        the (Python) regex for capturing bug numbers. MUST capture all the
         digits (and only the digits) of the bug id in a named group called
-	``bug``. This regex is compiled internally with the MULTILINE, DOTALL
-	and IGNORECASE options set. The default regex captures from the
+        ``bug``. This regex is compiled internally with the MULTILINE, DOTALL
+        and IGNORECASE options set. The default regex captures from the
         following forms:
 
           * bug 123
