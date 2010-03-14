@@ -73,7 +73,7 @@ values from the configuration files.
 
 You could pass a custom bug id extraction regex and your own logging.Logger
 instance. The update hook function also accepts an array of allowed bug status
-strings. If that is provided, bugzilla credentials MUST be provided as well.
+strings.
 
 Look at the module help for gitzilla.hooks for more information.
 
@@ -108,8 +108,7 @@ looks like::
 
 
 Each git repository on the system MUST have its own section. The global config
-MUST specify the ``bugzilla_url``, ``bugzilla_user`` and ``bugzilla_password``
-parameters.
+MUST specify the ``bugzilla_url`` parameter.
 
 The user specific files are entirely optional.
 
