@@ -28,7 +28,7 @@ def execute(asCommand, bSplitLines=False, bIgnoreErrors=False):
     data = p.stdout.read()
   iRetCode = p.wait()
   if iRetCode and not bIgnoreErrors:
-    print >>sys.stderr, 'Failed to execute command: %s\n%s' % (command, data)
+    print >>sys.stderr, 'Failed to execute command: %s\n%s' % (asCommand, data)
     sys.exit(-1)
 
   return data
