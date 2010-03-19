@@ -78,5 +78,6 @@ clean:
 
 bumpversion:
 	@${EDITOR} setup.py
+	@${EDITOR} __init__.py
 
 
