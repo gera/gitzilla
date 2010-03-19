@@ -14,7 +14,7 @@ pybugs can be obtained from http://github.com/ColdWind/pybugz/downloads
 
 """
 
-__version__ = '1.0'
+__version__ = '1.9.1'
 __author__ = 'Devendra Gera <gera@theoldmonk.net>'
 __license__ = """Copyright 2010, Devendra Gera <gera@theoldmonk.net>,
 All rights reserved.
