@@ -10,6 +10,8 @@ import subprocess
 import bugz.bugzilla
 
 
+sNoCommitRev = "0000000000000000000000000000000000000000"
+
 def execute(asCommand, bSplitLines=False, bIgnoreErrors=False):
   """
   Utility function to execute a command and return the output.
@@ -54,9 +56,16 @@ def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator):
   returns an array of chronological changes, between sOldRev and sNewRev,
   according to the format spec sFormatSpec.
   """
+  if sOldRev == sNoCommitRev:
+    sCommitRange = sNewRev
+  elif sNewRev == sNoCommitRev:
+    sCommitRange = sOldRev
+  else:
+    sCommitRange = "%s..%s" % (sOldRev, sNewRev)
+
   sChangeLog = execute(["git", "whatchanged",
                         "--format=format:%s%s" % (sSeparator, sFormatSpec),
-                        "%s..%s" % (sOldRev, sNewRev)])
+                        sCommitRange])
   asChangeLogs = sChangeLog.split(sSeparator)
   asChangeLogs.reverse()
 
