@@ -129,7 +129,7 @@ def post_receive():
   The user specific configuration is allowed to override the bugzilla
   username and password.
   """
-  siteconfig = ConfigParser.SafeConfigParser()
+  siteconfig = ConfigParser.RawConfigParser()
   siteconfig.readfp(file("/etc/gitzillarc"))
   sRepo = os.getcwd()
 
@@ -137,7 +137,7 @@ def post_receive():
     print "No %s section found in /etc/gitzillarc" % (sRepo,)
     sys.exit(1)
 
-  userconfig = ConfigParser.SafeConfigParser()
+  userconfig = ConfigParser.RawConfigParser()
   userconfig.read(os.path.expanduser("~/.gitzillarc"))
 
   (sBZUrl, sBZUser, sBZPasswd, bAllowDefaultAuth) = get_bz_data(siteconfig, userconfig)
@@ -163,7 +163,7 @@ def update():
   The user specific configuration is allowed to override the bugzilla
   username and password.
   """
-  siteconfig = ConfigParser.SafeConfigParser()
+  siteconfig = ConfigParser.RawConfigParser()
   siteconfig.readfp(file("/etc/gitzillarc"))
   sRepo = os.getcwd()
 
@@ -182,7 +182,7 @@ def update():
                 siteconfig.get(sRepo, "allowed_bug_states").split(","))
 
   # and the bugzilla info.
-  userconfig = ConfigParser.SafeConfigParser()
+  userconfig = ConfigParser.RawConfigParser()
   userconfig.read(os.path.expanduser("~/.gitzillarc"))
   (sBZUrl, sBZUser, sBZPasswd, bAllowDefaultAuth) = get_bz_data(siteconfig, userconfig)
 
