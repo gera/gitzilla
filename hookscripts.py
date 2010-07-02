@@ -8,6 +8,7 @@ These pick up configuration values from the environment.
 
 import os
 import sys
+import re
 import gitzilla.hooks
 import logging
 import ConfigParser
