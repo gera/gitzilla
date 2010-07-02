@@ -55,6 +55,8 @@
 #
 #  * user_config
 #
+#      default: allow
+#
 #      allow/deny user specific Bugzilla credentials. The legal values
 #      are: 'allow', 'deny' and 'force'. Defaults to 'allow'.
 #
@@ -66,15 +68,21 @@
 #
 #  * formatspec
 #
+#      default: commit      %H%nparents     %P%nAuthor      %aN (%aE)%nDate        %aD%nCommit By   %cN (%cE)%nCommit Date %cD%n%n%s%n%n%b%n
+#
 #      appended to '--format=format:' in 'git whatchanged'. See the
 #      'git whatchanged' manpage for more info.
 #
 #  * separator
 #
+#      default: ~.~.~.~.~.~.~.~.~.~.~.~.~.~.~.~.
+#
 #      a string which would never occur in commit messages. You should
 #      not need to set this, as it is already at a safe default.
 #
 #  * bug_regex
+#
+#      default: bug\s*(?:#|)\s*(?P<bug>\d+)
 #
 #      the (Python) regex for capturing bug numbers. MUST capture all
 #      the digits of the bug id in a named group called 'bug'. This
@@ -94,6 +102,8 @@
 #      be writable by all.
 #
 #  * loglevel
+#
+#      default: debug
 #
 #      can be 'info' or 'debug' - defaults to 'debug'.
 #
