@@ -51,9 +51,27 @@ Custom GitZilla
 
 If you need the hooks to do other stuff apart from just the Bugzilla
 integration, you could write your hook as a Python script and leave the
-Bugzilla stuff to one of the functions from ``gitzilla.hooks``.
+Bugzilla stuff to functions from ``gitzilla.hookscripts`` or
+``gitzilla.hooks``.
 
-In fact with the defaults, the ready scripts are equivalent to the following:
+In fact with the defaults, are equivalent to the following:
+
+post-receive::
+
+    #!/usr/bin/python
+    from gitzilla.hookscripts import post_receive
+    post_receive()
+
+
+update::
+
+    #!/usr/bin/python
+    from gitzilla.hookscripts import update
+    update()
+
+The functions from ``gitzilla.hookscripts`` parse and pick up values from the
+configuration files. If you want to taylor more use the functions from
+``gitzilla.hooks``.
 
 post-receive::
 
@@ -61,15 +79,11 @@ post-receive::
     from gitzilla.hooks import post_receive
     post_receive("https://repo.example.com/bugzilla", "username", "password")
 
-
 update::
 
     #!/usr/bin/python
     from gitzilla.hooks import update
-    update()
-
-The provided ready scripts do more, but that's just parsing and picking up
-values from the configuration files.
+    update("https://repo.example.com/bugzilla", "username", "password")
 
 You could pass a custom bug id extraction regex and your own logging.Logger
 instance. The update hook function also accepts an array of allowed bug status
