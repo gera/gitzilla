@@ -58,7 +58,14 @@
 #      default: allow
 #
 #      allow/deny user specific Bugzilla credentials. The legal values
-#      are: 'allow', 'deny' and 'force'. Defaults to 'allow'.
+#      are: 'allow', 'deny' and 'force'.
+#
+#  * require_bug_ref
+#
+#      default: True
+#
+#      whether the update hook should allow commits which do not contain
+#      a bug number. True or false.
 #
 #  * allowed_bug_states
 #

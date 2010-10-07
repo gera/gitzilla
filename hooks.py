@@ -93,7 +93,7 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
 
 
 
-def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None, sBZUser=None, sBZPasswd=None, logger=None, bz_init=None):
+def update(oBugRegex=None, bRequireBugNumber=True, asAllowedStatuses=None, sSeparator=None, sBZUrl=None, sBZUser=None, sBZPasswd=None, logger=None, bz_init=None):
   """
   an update hook handler which rejects commits without a bug reference.
   This looks at the sys.argv array, so make sure you don't modify it before
@@ -112,6 +112,9 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
     - BUG # 123
     - Bug#123
     - bug123
+
+  bRequireBugNumber, if True, requires that a bug number appears in the
+  commit message (otherwise it will be rejected).
 
   asAllowedStatuses is an array containing allowed statuses for the found
   bugs. If a bug is not in one of these states, the commit will be rejected.
@@ -168,8 +171,11 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
     logger.debug("Checking for bug refs in commit:\n%s" % (sMessage,))
     oMatch = re.search(oBugRegex, sMessage)
     if oMatch is None:
-      logger.error("No bug ref found in commit:\n%s" % (sMessage,))
-      notify_and_exit("No bug ref found in commit:\n%s" % (sMessage,))
+      if bRequireBugNumber:
+        logger.error("No bug ref found in commit:\n%s" % (sMessage,))
+        notify_and_exit("No bug ref found in commit:\n%s" % (sMessage,))
+      else:
+        logger.debug("No bug ref found, but none required.")
     else:
       if asAllowedStatuses is not None:
         # check all bug statuses

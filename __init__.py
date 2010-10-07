@@ -41,7 +41,7 @@ Commit Date %cD
 %s
 
 %b
-""".replace("\n", "%n")
+"""
 
 import re
 

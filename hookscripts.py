@@ -7,27 +7,40 @@ These pick up configuration values from the environment.
 """
 
 import os
-import sys
 import re
+import sys
 import gitzilla.hooks
 import logging
 import ConfigParser
 import bugz
 
+DEFAULT = 'DEFAULT'
+
+def to_bool(v):
+  if isinstance(v, str):
+    return v.lower() in ["yes", "true", "t", "1"]
+  else:
+    return bool(v)
+
 def get_or_default(conf, section, option, default=None):
   if conf.has_option(section, option):
     return conf.get(section, option)
-  return None
+  elif conf.has_option(DEFAULT, option):
+    return conf.get(DEFAULT, option)
+  return default
+
+
+def has_option_or_default(conf, section, option):
+  return conf.has_option(section, option) or conf.has_option(DEFAULT, option)
 
 
 def bz_auth_from_config(config, sRepo):
   sBZUser = None
   sBZPasswd = None
 
-  if config.has_section(sRepo):
-    if config.has_option(sRepo, "bugzilla_user") and config.has_option(sRepo, "bugzilla_password"):
-      sBZUser = config.get(sRepo, "bugzilla_user")
-      sBZPasswd = config.get(sRepo, "bugzilla_password")
+  if has_option_or_default(config, sRepo, "bugzilla_user") and has_option_or_default(config, sRepo, "bugzilla_password"):
+    sBZUser = get_or_default(config, sRepo, "bugzilla_user")
+    sBZPasswd = get_or_default(config, sRepo, "bugzilla_password")
 
   return (sBZUser, sBZPasswd)
 
@@ -38,10 +51,9 @@ def get_bz_data(siteconfig, userconfig):
 
   bAllowDefaultAuth = False
 
-  try:
-    sBZUrl = siteconfig.get(sRepo, "bugzilla_url")
-  except:
-    print "missing/incomplete bugzilla conf"
+  sBZUrl = get_or_default(siteconfig, sRepo, "bugzilla_url")
+  if not sBZUrl:
+    print "missing/incomplete bugzilla conf (no bugzilla_url)"
     sys.exit(1)
 
   sUserOption = get_or_default(siteconfig, sRepo, "user_config", "allow")
@@ -70,9 +82,9 @@ def get_bz_data(siteconfig, userconfig):
 def get_logger(siteconfig):
   sRepo = os.getcwd()
   logger = None
-  if siteconfig.has_option(sRepo, "logfile"):
+  if has_option_or_default(siteconfig, sRepo, "logfile"):
     logger = logging.getLogger("gitzilla")
-    logger.addHandler(logging.FileHandler(siteconfig.get(sRepo, "logfile")))
+    logger.addHandler(logging.FileHandler(get_or_default(siteconfig, sRepo, "logfile")))
     # default to debug, but switch to info if asked.
     sLogLevel = get_or_default(siteconfig, sRepo, "loglevel", "debug")
     logger.setLevel({"info": logging.INFO}.get(sLogLevel, logging.DEBUG))
@@ -83,12 +95,11 @@ def get_logger(siteconfig):
 def get_bug_regex(siteconfig):
   sRepo = os.getcwd()
   oBugRegex = None
-  if siteconfig.has_option(sRepo, "bug_regex"):
-    oBugRegex = re.compile(siteconfig.get(sRepo, "bug_regex"),
+  if has_option_or_default(siteconfig, sRepo, "bug_regex"):
+    oBugRegex = re.compile(get_or_default(siteconfig, sRepo, "bug_regex"),
                            re.MULTILINE | re.DOTALL | re.IGNORECASE)
 
   return oBugRegex
-
 
 
 def make_bz_init(siteconfig, bAllowDefaultAuth):
@@ -133,10 +144,6 @@ def post_receive():
   siteconfig.readfp(file("/etc/gitzillarc"))
   sRepo = os.getcwd()
 
-  if not siteconfig.has_section(sRepo):
-    print "No %s section found in /etc/gitzillarc" % (sRepo,)
-    sys.exit(1)
-
   userconfig = ConfigParser.RawConfigParser()
   userconfig.read(os.path.expanduser("~/.gitzillarc"))
 
@@ -167,19 +174,15 @@ def update():
   siteconfig.readfp(file("/etc/gitzillarc"))
   sRepo = os.getcwd()
 
-  if not siteconfig.has_section(sRepo):
-    print "No %s section found in /etc/gitzillarc" % (sRepo,)
-    sys.exit(1)
-
   logger = get_logger(siteconfig)
   oBugRegex = get_bug_regex(siteconfig)
   sSeparator = get_or_default(siteconfig, sRepo, "separator")
-  sFormatSpec = get_or_default(siteconfig, sRepo, "formatspec")
 
+  bRequireBugNumber = to_bool(get_or_default(siteconfig, sRepo, "require_bug_ref", True))
   asAllowedStatuses = None
-  if siteconfig.has_option(sRepo, "allowed_bug_states"):
+  if has_option_or_default(siteconfig, sRepo, "allowed_bug_states"):
     asAllowedStatuses = map(lambda x: x.strip(),
-                siteconfig.get(sRepo, "allowed_bug_states").split(","))
+                get_or_default(siteconfig, sRepo, "allowed_bug_states").split(","))
 
   # and the bugzilla info.
   userconfig = ConfigParser.RawConfigParser()
@@ -188,7 +191,7 @@ def update():
 
   bz_init = make_bz_init(siteconfig, bAllowDefaultAuth)
 
-  gitzilla.hooks.update(oBugRegex, asAllowedStatuses, sSeparator,
+  gitzilla.hooks.update(oBugRegex, bRequireBugNumber, asAllowedStatuses, sSeparator,
                         sBZUrl, sBZUser, sBZPasswd, logger, bz_init)
 
 

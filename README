@@ -111,18 +111,23 @@ The configuration files themselves are in the ConfigParser format (see
 http://docs.python.org/library/configparser.html). A sample configuration
 looks like::
 
+    [DEFAULT]
+    user_config: deny
+    allowed_bug_states: NEW, ASSIGNED, REOPENED
+
     [/path/to/repository/.git]
     bugzilla_url: https://repo.example.com/bugzilla/
     bugzilla_user: foo@example.com
     bugzilla_password: blahblah
-    user_config: deny
-    allowed_bug_states: NEW, ASSIGNED, REOPENED
     logfile: /var/log/gitzilla.log
     loglevel: info
 
 
-Each git repository on the system MUST have its own section. The global config
+Each git repository on the system MAY have its own section. The global config
 MUST specify the ``bugzilla_url`` parameter.
+
+Default values (applied to each repository unless overridden) may be specified 
+in a [DEFAULT] section.
 
 The user specific files are entirely optional.
 
@@ -147,6 +152,12 @@ Optional parameters
 
         allow/deny user specific bugzilla credentials. The legal values are
         ``allow``, ``deny`` and ``force``. Defaults to ``allow``.
+
+  - require_bug_ref
+
+        if True, the update hook will require that each commit message contains
+        a bug number. If False, it will not. Defaults to True (same as historical
+        behaviour).
 
   - allowed_bug_states
 
