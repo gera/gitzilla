@@ -35,7 +35,7 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
     - Bug#123
     - bug123
 
-  The format spec is appended to "--format=format:" and passed to
+  The format spec is appended to "--pretty=format:" and passed to
   "git whatchanged". See the git whatchanged manpage for more info on the
   format spec.
 

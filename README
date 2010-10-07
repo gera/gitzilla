@@ -166,7 +166,7 @@ Optional parameters
 
   - formatspec
 
-        appended to ``--format=format:`` and passed to ``git whatchanged``.
+        appended to ``--pretty=format:`` and passed to ``git whatchanged``.
         See the ``git whatchanged`` manpage for more info.
 
   - separator
