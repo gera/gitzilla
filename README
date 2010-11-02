@@ -188,6 +188,13 @@ Optional parameters
           * bug# 123
           * Bug #123
 
+  - git_ref_prefix
+        
+		the string which must start a git reference for its commits to be
+		processed. Defaults to 'refs/heads/' so that we don't process 'tags/' and
+		run the risk of processing many commits multiple times. You can set it
+		to the empty string to process all git references.
+  
   - logfile
 
         the file to log to. MUST be writable by the uid of the git process. In

@@ -151,13 +151,14 @@ def post_receive():
 
   logger = get_logger(siteconfig)
   oBugRegex = get_bug_regex(siteconfig)
+  sRefPrefix = get_or_default(siteconfig, sRepo, "git_ref_prefix")
   sSeparator = get_or_default(siteconfig, sRepo, "separator")
   sFormatSpec = get_or_default(siteconfig, sRepo, "formatspec")
 
   bz_init = make_bz_init(siteconfig, bAllowDefaultAuth)
 
   gitzilla.hooks.post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec,
-                              oBugRegex, sSeparator, logger, bz_init)
+                              oBugRegex, sSeparator, logger, bz_init, sRefPrefix)
 
 
 
@@ -176,6 +177,7 @@ def update():
 
   logger = get_logger(siteconfig)
   oBugRegex = get_bug_regex(siteconfig)
+  sRefPrefix = get_or_default(siteconfig, sRepo, "git_ref_prefix")
   sSeparator = get_or_default(siteconfig, sRepo, "separator")
 
   bRequireBugNumber = to_bool(get_or_default(siteconfig, sRepo, "require_bug_ref", True))
@@ -192,6 +194,6 @@ def update():
   bz_init = make_bz_init(siteconfig, bAllowDefaultAuth)
 
   gitzilla.hooks.update(oBugRegex, bRequireBugNumber, asAllowedStatuses, sSeparator,
-                        sBZUrl, sBZUser, sBZPasswd, logger, bz_init)
+                        sBZUrl, sBZUser, sBZPasswd, logger, bz_init, sRefPrefix)
 
 
