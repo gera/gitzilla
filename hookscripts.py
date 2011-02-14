@@ -112,9 +112,19 @@ def make_bz_init(siteconfig, bAllowDefaultAuth):
         (sSiteUser, sSitePasswd) = bz_auth_from_config(siteconfig, sRepo)
 
     oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
-    oBZ.get_input = lambda prompt: sSiteUser
+
+    def auth_error(*args):
+      raise ValueError("no Bugzilla auth found!")
+
+    if sSiteUser is None:
+      oBZ.get_input = auth_error
+    else:
+      oBZ.get_input = lambda prompt: sSiteUser
     import getpass
-    getpass.getpass = lambda: sSitePasswd
+    if sSitePasswd is None:
+      getpass.getpass = auth_error
+    else:
+      getpass.getpass = lambda: sSitePasswd
     return oBZ
 
   return bz_init
