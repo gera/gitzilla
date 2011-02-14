@@ -78,7 +78,8 @@
 #      default: commit      %H%nparents     %P%nAuthor      %aN (%aE)%nDate        %aD%nCommit By   %cN (%cE)%nCommit Date %cD%n%n%s%n%n%b%n
 #
 #      appended to '--format=format:' in 'git whatchanged'. See the
-#      'git whatchanged' manpage for more info.
+#      'git whatchanged' manpage for more info. Newlines are automatically
+#      converted to '%n'.
 #
 #  * separator
 #
