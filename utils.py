@@ -63,8 +63,9 @@ def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator):
   else:
     sCommitRange = "%s..%s" % (sOldRev, sNewRev)
 
+  sFormatSpec = sFormatSpec.strip("\n").replace("\n", "%n")
   sChangeLog = execute(["git", "whatchanged",
-                        "--format=format:%s%s" % (sSeparator, sFormatSpec),
+                        "--pretty=format:%s%s" % (sSeparator, sFormatSpec),
                         sCommitRange])
   asChangeLogs = sChangeLog.split(sSeparator)
   asChangeLogs.reverse()

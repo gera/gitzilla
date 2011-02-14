@@ -111,18 +111,23 @@ The configuration files themselves are in the ConfigParser format (see
 http://docs.python.org/library/configparser.html). A sample configuration
 looks like::
 
+    [DEFAULT]
+    user_config: deny
+    allowed_bug_states: NEW, ASSIGNED, REOPENED
+
     [/path/to/repository/.git]
     bugzilla_url: https://repo.example.com/bugzilla/
     bugzilla_user: foo@example.com
     bugzilla_password: blahblah
-    user_config: deny
-    allowed_bug_states: NEW, ASSIGNED, REOPENED
     logfile: /var/log/gitzilla.log
     loglevel: info
 
 
-Each git repository on the system MUST have its own section. The global config
+Each git repository on the system MAY have its own section. The global config
 MUST specify the ``bugzilla_url`` parameter.
+
+Default values (applied to each repository unless overridden) may be specified 
+in a [DEFAULT] section.
 
 The user specific files are entirely optional.
 
@@ -148,6 +153,12 @@ Optional parameters
         allow/deny user specific bugzilla credentials. The legal values are
         ``allow``, ``deny`` and ``force``. Defaults to ``allow``.
 
+  - require_bug_ref
+
+        if True, the update hook will require that each commit message contains
+        a bug number. If False, it will not. Defaults to True (same as historical
+        behaviour).
+
   - allowed_bug_states
 
         a comma separated set of states that a bug must be in, in order for
@@ -155,8 +166,10 @@ Optional parameters
 
   - formatspec
 
-        appended to ``--format=format:`` and passed to ``git whatchanged``.
-        See the ``git whatchanged`` manpage for more info.
+        appended to ``--pretty=format:`` and passed to ``git whatchanged``.
+        See the ``git whatchanged`` manpage for more info. Newlines are
+        automatically converted to '%n', which is what the git format spec
+        requires.
 
   - separator
 
@@ -177,6 +190,13 @@ Optional parameters
           * bug# 123
           * Bug #123
 
+  - git_ref_prefix
+        
+		the string which must start a git reference for its commits to be
+		processed. Defaults to 'refs/heads/' so that we don't process 'tags/' and
+		run the risk of processing many commits multiple times. You can set it
+		to the empty string to process all git references.
+  
   - logfile
 
         the file to log to. MUST be writable by the uid of the git process. In

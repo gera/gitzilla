@@ -7,12 +7,12 @@ hooks - git hooks provided by gitzilla.
 import re
 import sys
 from utils import get_changes, init_bugzilla, get_bug_status, notify_and_exit
-from gitzilla import sDefaultSeparator, sDefaultFormatSpec, oDefaultBugRegex
+from gitzilla import sDefaultSeparator, sDefaultFormatSpec, oDefaultBugRegex, sDefaultRefPrefix
 from gitzilla import NullLogger
 import traceback
 
 
-def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugRegex=None, sSeparator=None, logger=None, bz_init=None):
+def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugRegex=None, sSeparator=None, logger=None, bz_init=None, sRefPrefix=None):
   """
   a post-recieve hook handler which extracts bug ids and adds the commit
   info to the comment. If multiple bug ids are found, the comment is added
@@ -35,9 +35,10 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
     - Bug#123
     - bug123
 
-  The format spec is appended to "--format=format:" and passed to
+  The format spec is appended to "--pretty=format:" and passed to
   "git whatchanged". See the git whatchanged manpage for more info on the
-  format spec.
+  format spec. Newlines are automatically converted to the "--pretty"
+  equivalent, which is '%n'.
 
   If sFormatSpec is None, a default format spec is used.
 
@@ -51,6 +52,9 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
 
   The function bz_init(url, username, password) is invoked to instantiate the
   bugz.bugzilla.Bugz instance. If this is None, the default method is used.
+  
+  sRefPrefix is the string prefix of the git reference. If a git reference
+  does not start with this, its commits will be ignored. 'refs/heads/' by default.
   """
   if sFormatSpec is None:
     sFormatSpec = sDefaultFormatSpec
@@ -66,12 +70,19 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
 
   if bz_init is None:
     bz_init = init_bugzilla
+	
+  if sRefPrefix is None:
+    sRefPrefix = sDefaultRefPrefix
 
   oBZ = bz_init(sBZUrl, sBZUser, sBZPasswd)
 
   sPrevRev = None
   for sLine in iter(sys.stdin.readline, ""):
-    (sOldRev, sNewRev, sRefName) = sLine.split(" ")
+    (sOldRev, sNewRev, sRefName) = sLine.strip().split(" ")
+    if not sRefName.startswith(sRefPrefix):
+      logger.debug("ignoring ref: '%s'" % (sRefName,))
+      continue
+		
     if sPrevRev is None:
       sPrevRev = sOldRev
     logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
@@ -93,7 +104,7 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
 
 
 
-def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None, sBZUser=None, sBZPasswd=None, logger=None, bz_init=None):
+def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None, sBZUser=None, sBZPasswd=None, logger=None, bz_init=None, sRefPrefix=None, bRequireBugNumber=True):
   """
   an update hook handler which rejects commits without a bug reference.
   This looks at the sys.argv array, so make sure you don't modify it before
@@ -130,6 +141,12 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
 
   The function bz_init(url, username, password) is invoked to instantiate the
   bugz.bugzilla.Bugz instance. If this is None, the default method is used.
+  
+  sRefPrefix is the string prefix of the git reference. If a git reference
+  does not start with this, its commits will be ignored. 'refs/heads/' by default.
+
+  bRequireBugNumber, if True, requires that a bug number appears in the
+  commit message (otherwise it will be rejected).
   """
   if oBugRegex is None:
     oBugRegex = oDefaultBugRegex
@@ -142,6 +159,9 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
 
   if bz_init is None:
     bz_init = init_bugzilla
+	
+  if sRefPrefix is None:
+    sRefPrefix = sDefaultRefPrefix
 
   sFormatSpec = sDefaultFormatSpec
 
@@ -159,7 +179,11 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
     logger.error("Could not login to Bugzilla", exc_info=1)
     notify_and_exit("Could not login to Bugzilla. Check your auth details and settings")
 
-  (sOldRev, sNewRev) = sys.argv[2:4]
+  (sRefName, sOldRev, sNewRev) = sys.argv[1:4]
+  if not sRefName.startswith(sRefPrefix):
+    logger.debug("ignoring ref: '%s'" % (sRefName,))
+    return
+	
   logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
 
   asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator)
@@ -168,8 +192,11 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
     logger.debug("Checking for bug refs in commit:\n%s" % (sMessage,))
     oMatch = re.search(oBugRegex, sMessage)
     if oMatch is None:
-      logger.error("No bug ref found in commit:\n%s" % (sMessage,))
-      notify_and_exit("No bug ref found in commit:\n%s" % (sMessage,))
+      if bRequireBugNumber:
+        logger.error("No bug ref found in commit:\n%s" % (sMessage,))
+        notify_and_exit("No bug ref found in commit:\n%s" % (sMessage,))
+      else:
+        logger.debug("No bug ref found, but none required.")
     else:
       if asAllowedStatuses is not None:
         # check all bug statuses
