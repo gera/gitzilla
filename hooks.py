@@ -12,7 +12,7 @@ from gitzilla import NullLogger
 import traceback
 
 
-def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugRegex=None, sSeparator=None, logger=None, bz_init=None, sRefPrefix=None):
+def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugRegex=None, sSeparator=None, logger=None, bz_init=None, sRefPrefix=None, bIncludeDiffStat=True):
   """
   a post-recieve hook handler which extracts bug ids and adds the commit
   info to the comment. If multiple bug ids are found, the comment is added
@@ -86,7 +86,7 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
     if sPrevRev is None:
       sPrevRev = sOldRev
     logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
-    asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator)
+    asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat)
 
     for sMessage in asChangeLogs:
       logger.debug("Considering commit:\n%s" % (sMessage,))
@@ -186,7 +186,7 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
 	
   logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
 
-  asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator)
+  asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, False)
   
   for sMessage in asChangeLogs:
     logger.debug("Checking for bug refs in commit:\n%s" % (sMessage,))

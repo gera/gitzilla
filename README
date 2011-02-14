@@ -171,6 +171,12 @@ Optional parameters
         automatically converted to '%n', which is what the git format spec
         requires.
 
+  - include_diffstat
+
+       include diffstat (a list of changed file with a histogram). If False,
+       the diffstat is not included. Defaults to True to be consistent with
+       previous behaviour.
+
   - separator
 
         a string which would never occur in commit messages. You should not

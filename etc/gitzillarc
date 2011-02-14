@@ -81,6 +81,13 @@
 #      'git whatchanged' manpage for more info. Newlines are automatically
 #      converted to '%n'.
 #
+#  * include_diffstat
+#
+#      default: True
+#
+#      include the diffstat (a list of changed files with a histogram).
+#      If False, the diffstat is not included. True or False.
+#
 #  * separator
 #
 #      default: ~.~.~.~.~.~.~.~.~.~.~.~.~.~.~.~.

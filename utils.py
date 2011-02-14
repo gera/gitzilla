@@ -51,7 +51,7 @@ def init_bugzilla(sBZUrl, sBZUser, sBZPasswd):
 
 
 
-def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator):
+def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat):
   """
   returns an array of chronological changes, between sOldRev and sNewRev,
   according to the format spec sFormatSpec.
@@ -64,7 +64,11 @@ def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator):
     sCommitRange = "%s..%s" % (sOldRev, sNewRev)
 
   sFormatSpec = sFormatSpec.strip("\n").replace("\n", "%n")
-  sChangeLog = execute(["git", "whatchanged",
+  if bIncludeDiffStat:
+    sCommand = "whatchanged"
+  else:
+    sCommand = "log"
+  sChangeLog = execute(["git", sCommand,
                         "--pretty=format:%s%s" % (sSeparator, sFormatSpec),
                         sCommitRange])
   asChangeLogs = sChangeLog.split(sSeparator)

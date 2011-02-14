@@ -164,11 +164,13 @@ def post_receive():
   sRefPrefix = get_or_default(siteconfig, sRepo, "git_ref_prefix")
   sSeparator = get_or_default(siteconfig, sRepo, "separator")
   sFormatSpec = get_or_default(siteconfig, sRepo, "formatspec")
+  bIncludeDiffStat = to_bool(get_or_default(siteconfig, sRepo, "include_diffstat", True))
 
   bz_init = make_bz_init(siteconfig, bAllowDefaultAuth)
 
   gitzilla.hooks.post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec,
-                              oBugRegex, sSeparator, logger, bz_init, sRefPrefix)
+                              oBugRegex, sSeparator, logger, bz_init,
+                              sRefPrefix, bIncludeDiffStat)
 
 
 
