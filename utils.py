@@ -51,7 +51,7 @@ def init_bugzilla(sBZUrl, sBZUser, sBZPasswd):
 
 
 
-def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat):
+def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat, sRefName):
   """
   returns an array of chronological changes, between sOldRev and sNewRev,
   according to the format spec sFormatSpec.
@@ -64,13 +64,27 @@ def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat):
     sCommitRange = "%s..%s" % (sOldRev, sNewRev)
 
   sFormatSpec = sFormatSpec.strip("\n").replace("\n", "%n")
+
   if bIncludeDiffStat:
     sCommand = "whatchanged"
   else:
     sCommand = "log"
-  sChangeLog = execute(["git", sCommand,
-                        "--pretty=format:%s%s" % (sSeparator, sFormatSpec),
-                        sCommitRange])
+
+  asCommand = ['git', sCommand,
+               "--format=format:%s%s" % (sSeparator, sFormatSpec)]
+
+  if sRefName != None and sRefName.startswith('refs/heads/'):
+    asAllBranches = execute(['git', 'for-each-ref', '--format=%(refname)',
+                             'refs/heads/'], bSplitLines=True             )
+    asAllBranches = map(lambda x: x.strip(), asAllBranches)
+    asOtherBranches = filter(lambda x: x != sRefName, asAllBranches)
+    asNotOtherBranches = execute(['git', 'rev-parse', '--not']
+                                 + asOtherBranches, bSplitLines=True)
+    asNotOtherBranches = map(lambda x: x.strip(), asNotOtherBranches)
+    asCommand += asNotOtherBranches
+
+  asCommand.append(sCommitRange)
+  sChangeLog = execute(asCommand)
   asChangeLogs = sChangeLog.split(sSeparator)
   asChangeLogs.reverse()
 
