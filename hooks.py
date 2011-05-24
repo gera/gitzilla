@@ -12,7 +12,7 @@ from gitzilla import NullLogger
 import traceback
 
 
-def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugRegex=None, sSeparator=None, logger=None, bz_init=None, sRefPrefix=None, bIncludeDiffStat=True):
+def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugRegex=None, sSeparator=None, logger=None, bz_init=None, sRefPrefix=None, bIncludeDiffStat=True, pushes=None):
   """
   a post-recieve hook handler which extracts bug ids and adds the commit
   info to the comment. If multiple bug ids are found, the comment is added
@@ -52,7 +52,7 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
 
   The function bz_init(url, username, password) is invoked to instantiate the
   bugz.bugzilla.Bugz instance. If this is None, the default method is used.
-  
+
   sRefPrefix is the string prefix of the git reference. If a git reference
   does not start with this, its commits will be ignored. 'refs/heads/' by default.
   """
@@ -70,19 +70,26 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
 
   if bz_init is None:
     bz_init = init_bugzilla
-	
+
   if sRefPrefix is None:
     sRefPrefix = sDefaultRefPrefix
 
   oBZ = bz_init(sBZUrl, sBZUser, sBZPasswd)
 
+  def gpushes():
+      for sLine in iter(sys.stdin.readline, ""):
+          yield sLine.strip().split(" ")
+
+  if not pushes:
+    pushes = gpushes()
+
   sPrevRev = None
-  for sLine in iter(sys.stdin.readline, ""):
-    (sOldRev, sNewRev, sRefName) = sLine.strip().split(" ")
+  for push in pushes:
+    (sOldRev, sNewRev, sRefName) = push
     if not sRefName.startswith(sRefPrefix):
       logger.debug("ignoring ref: '%s'" % (sRefName,))
       continue
-		
+
     if sPrevRev is None:
       sPrevRev = sOldRev
     logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
@@ -141,7 +148,7 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
 
   The function bz_init(url, username, password) is invoked to instantiate the
   bugz.bugzilla.Bugz instance. If this is None, the default method is used.
-  
+
   sRefPrefix is the string prefix of the git reference. If a git reference
   does not start with this, its commits will be ignored. 'refs/heads/' by default.
 
@@ -159,7 +166,7 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
 
   if bz_init is None:
     bz_init = init_bugzilla
-	
+
   if sRefPrefix is None:
     sRefPrefix = sDefaultRefPrefix
 
@@ -183,11 +190,11 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
   if not sRefName.startswith(sRefPrefix):
     logger.debug("ignoring ref: '%s'" % (sRefName,))
     return
-	
+
   logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
 
   asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, False, sRefName)
-  
+
   for sMessage in asChangeLogs:
     logger.debug("Checking for bug refs in commit:\n%s" % (sMessage,))
     oMatch = re.search(oBugRegex, sMessage)
