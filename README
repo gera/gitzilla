@@ -11,6 +11,33 @@ everyone - home to the the "official" or the "central" repository.
 
 There's a mailing list for GitZilla now, at gitzilla-talk@googlegroups.com
 
+
+Summary of features
+...................
+
+GitZilla might be the right tool if you want to::
+
+  - Automatically add commits to bugs referenced in the commit messages
+    whenever changes are pushed to a central git repository.
+
+  - Reject commits without a bug reference.
+
+  - Only allow commits referring to active bugs (reject commits referring to
+    CLOSED, RESOLVED or any other specific bug states).
+
+  - (contributed, untested): Usable with Gerrit.
+
+  - Some combination or all of the above.
+
+
+With the above capabilities, GitZilla allows for::
+
+  - Per-user, or system-wide authentication for Bugzilla.
+  - Configurable bug comment formats and content.
+  - Optional diffstat as part of the bug comments.
+  - Configurable regexes for matching bug IDs in commit messages.
+
+
 Usage
 .....
 
