@@ -9,6 +9,7 @@ various ways of using GitZilla.
 Note that GitZilla must be installed on the machine receiving commits from
 everyone - home to the the "official" or the "central" repository.
 
+There's a mailing list for GitZilla now, at gitzilla-talk@googlegroups.com
 
 Usage
 .....
@@ -282,4 +283,8 @@ The download page contains a .deb which should work on Debian and Ubuntu
 systems.
 
 
+Mailing list
+............
+
+The official GitZilla mailing list: gitzilla-talk@googlegroups.com
 
