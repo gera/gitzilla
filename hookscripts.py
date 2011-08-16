@@ -141,7 +141,7 @@ def make_bz_init(siteconfig, bAllowDefaultAuth):
   return bz_init
 
 
-def post_receive(pushes=None):
+def post_receive(aasPushes=None):
   """
   The gitzilla-post-receive hook script.
 
@@ -149,6 +149,9 @@ def post_receive(pushes=None):
 
   The user specific configuration is allowed to override the bugzilla
   username and password.
+
+  aasPushes is a list of (sOldRev, sNewRev, sRefName) tuples, for when these
+  aren't read from stdin (gerrit integration).
   """
   siteconfig = ConfigParser.RawConfigParser()
   siteconfig.readfp(file("/etc/gitzillarc"))
@@ -170,7 +173,7 @@ def post_receive(pushes=None):
 
   gitzilla.hooks.post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec,
                               oBugRegex, sSeparator, logger, bz_init,
-                              sRefPrefix, bIncludeDiffStat, pushes)
+                              sRefPrefix, bIncludeDiffStat, aasPushes)
 
 
 
