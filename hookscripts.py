@@ -60,7 +60,7 @@ def get_bz_data(siteconfig, userconfig):
   sUserOption = {"deny": "deny", "force": "force"}.get(sUserOption, "allow")
 
   (sBZUser, sBZPasswd) = bz_auth_from_config(userconfig, sRepo)
-  
+
   # ignore auth from site-config if "force"
   if sUserOption == "force":
     bAllowDefaultAuth = False
@@ -141,7 +141,7 @@ def make_bz_init(siteconfig, bAllowDefaultAuth):
   return bz_init
 
 
-def post_receive():
+def post_receive(pushes=None):
   """
   The gitzilla-post-receive hook script.
 
@@ -170,7 +170,7 @@ def post_receive():
 
   gitzilla.hooks.post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec,
                               oBugRegex, sSeparator, logger, bz_init,
-                              sRefPrefix, bIncludeDiffStat)
+                              sRefPrefix, bIncludeDiffStat, pushes)
 
 
 
