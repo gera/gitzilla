@@ -51,10 +51,13 @@ def init_bugzilla(sBZUrl, sBZUser, sBZPasswd):
 
 
 
-def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat, sRefName):
+def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat, sRefName, sRefPrefix):
   """
   returns an array of chronological changes, between sOldRev and sNewRev,
   according to the format spec sFormatSpec.
+
+  Gets changes which are only on the specified ref, excluding changes
+  also present on other refs starting with sRefPrefix.
   """
   if sOldRev == sNoCommitRev:
     sCommitRange = sNewRev
@@ -73,15 +76,19 @@ def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat, sRe
   asCommand = ['git', sCommand,
                "--format=format:%s%s" % (sSeparator, sFormatSpec)]
 
-  if sRefName != None and sRefName.startswith('refs/heads/'):
-    asAllBranches = execute(['git', 'for-each-ref', '--format=%(refname)',
-                             'refs/heads/'], bSplitLines=True             )
-    asAllBranches = map(lambda x: x.strip(), asAllBranches)
-    asOtherBranches = filter(lambda x: x != sRefName, asAllBranches)
-    asNotOtherBranches = execute(['git', 'rev-parse', '--not']
-                                 + asOtherBranches, bSplitLines=True)
-    asNotOtherBranches = map(lambda x: x.strip(), asNotOtherBranches)
-    asCommand += asNotOtherBranches
+  # exclude all changes which are also found on other refs
+  # and hence have already been processed.
+  if sRefName is not None:
+    asAllRefs = execute(
+        ['git', 'for-each-ref', '--format=%(refname)', sRefPrefix],
+        bSplitLines=True)
+    asAllRefs = map(lambda x: x.strip(), asAllRefs)
+    asOtherRefs = filter(lambda x: x != sRefName, asAllRefs)
+    asNotOtherRefs = execute(
+        ['git', 'rev-parse', '--not'] + asOtherRefs,
+        bSplitLines=True)
+    asNotOtherRefs = map(lambda x: x.strip(), asNotOtherRefs)
+    asCommand += asNotOtherRefs
 
   asCommand.append(sCommitRange)
   sChangeLog = execute(asCommand)

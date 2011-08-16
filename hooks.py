@@ -86,7 +86,7 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
     if sPrevRev is None:
       sPrevRev = sOldRev
     logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
-    asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat, sRefName.strip())
+    asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat, sRefName, sRefPrefix)
 
     for sMessage in asChangeLogs:
       logger.debug("Considering commit:\n%s" % (sMessage,))
@@ -186,7 +186,7 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
 	
   logger.debug("oldrev: '%s', newrev: '%s'" % (sOldRev, sNewRev))
 
-  asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, False, sRefName)
+  asChangeLogs = get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, False, sRefName, sRefPrefix)
   
   for sMessage in asChangeLogs:
     logger.debug("Checking for bug refs in commit:\n%s" % (sMessage,))
