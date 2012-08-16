@@ -7,7 +7,6 @@ utils module for gitzilla
 import os
 import sys
 import subprocess
-import bugz.bugzilla
 
 
 sNoCommitRev = "0000000000000000000000000000000000000000"
@@ -34,21 +33,6 @@ def execute(asCommand, bSplitLines=False, bIgnoreErrors=False):
     sys.exit(-1)
 
   return data
-
-
-def init_bugzilla(sBZUrl, sBZUser, sBZPasswd):
-  """
-  initializes and returns a bugz.bugzilla.Bugz instance.
-
-  This may be overridden in custom hook scripts in order to expand auth
-  support.
-  """
-  if sBZUrl is None:
-    raise ValueError("No Bugzilla URL specified")
-
-  oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
-  return oBZ
-
 
 
 def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat, sRefName, sRefPrefix):
@@ -97,29 +81,6 @@ def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat, sRe
 
   return asChangeLogs[:-1]
 
-
-
-def post_to_bugzilla(iBugId, sComment, sBZUrl, sBZUser, sBZPasswd):
-  """
-  posts the comment to the given bug id.
-  """
-  if sBZUrl is None:
-    raise ValueError("No Bugzilla URL specified")
-
-  oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
-  oBZ.modify(iBugId, comment=sComment)
-
-
-
-def get_bug_status(oBugz, iBugId):
-  """
-  given the bugz.bugzilla.Bugz instance and the bug id, returns the bug
-  status.
-  """
-  oBug = oBugz.get(iBugId)
-  if oBug is None:
-    return None
-  return oBug.getroot().find("bug/bug_status").text
 
 
 def notify_and_exit(sMsg):

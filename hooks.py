@@ -6,20 +6,23 @@ hooks - git hooks provided by gitzilla.
 
 import re
 import sys
-from utils import get_changes, init_bugzilla, get_bug_status, notify_and_exit
+from bugwrap import BugzillaWrapper
+from utils import get_changes, notify_and_exit
 from gitzilla import sDefaultSeparator, sDefaultFormatSpec, oDefaultBugRegex, sDefaultRefPrefix
 from gitzilla import NullLogger
 import traceback
 
 
-def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugRegex=None, sSeparator=None, logger=None, bz_init=None, sRefPrefix=None, bIncludeDiffStat=True, aasPushes=None):
+def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugRegex=None, sSeparator=None, logger=None, bz_wrap=None, sRefPrefix=None, bIncludeDiffStat=True, aasPushes=None):
   """
   a post-recieve hook handler which extracts bug ids and adds the commit
   info to the comment. If multiple bug ids are found, the comment is added
   to each of those bugs.
 
-  sBZUrl is the base URL for the Bugzilla installation. If sBZUser and
-  sBZPasswd are None, then it uses the ~/.bugz_cookie cookiejar.
+  sBZUrl is the base URL for the Bugzilla installation. sBZUser and
+  sBZPassword should be the login and password of a Bugzilla user
+  allowed to check a bug's status and comment on them. If they are
+  None, what happens is defined by the bz_wrap function.
 
   oBugRegex specifies the regex used to search for the bug id in the commit
   messages. It MUST provide a named group called 'bug' which contains the bug
@@ -50,8 +53,9 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
   is None, logging will be disabled. The logger must be a Python
   logging.Logger instance.
 
-  The function bz_init(url, username, password) is invoked to instantiate the
-  bugz.bugzilla.Bugz instance. If this is None, the default method is used.
+  The function bz_wrap(url, username, password) is invoked to
+  instantiate the bugwrap.BugzillaWrapper instance. If this is None,
+  the default method is used.
 
   sRefPrefix is the string prefix of the git reference. If a git reference
   does not start with this, its commits will be ignored. 'refs/heads/' by default.
@@ -71,13 +75,13 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
   if logger is None:
     logger = NullLogger
 
-  if bz_init is None:
-    bz_init = init_bugzilla
+  if bz_wrap is None:
+    bz_wrap = BugzillaWrapper
 
   if sRefPrefix is None:
     sRefPrefix = sDefaultRefPrefix
 
-  oBZ = bz_init(sBZUrl, sBZUser, sBZPasswd)
+  oBZ = bz_wrap(sBZUrl, sBZUser, sBZPasswd)
 
   def gPushes():
     for sLine in iter(sys.stdin.readline, ""):
@@ -108,13 +112,13 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
         iBugId = int(oMatch.group("bug"))
         logger.debug("Found bugid %d" % (iBugId,))
         try:
-          oBZ.modify(iBugId, comment=sMessage)
+          oBZ.add_bug_comment(iBugId, sMessage)
         except Exception, e:
           logger.exception("Could not add comment to bug %d" % (iBugId,))
 
 
 
-def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None, sBZUser=None, sBZPasswd=None, logger=None, bz_init=None, sRefPrefix=None, bRequireBugNumber=True):
+def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None, sBZUser=None, sBZPasswd=None, logger=None, bz_wrap=None, sRefPrefix=None, bRequireBugNumber=True):
   """
   an update hook handler which rejects commits without a bug reference.
   This looks at the sys.argv array, so make sure you don't modify it before
@@ -149,8 +153,9 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
   is None, logging will be disabled. The logger must be a Python
   logging.Logger instance.
 
-  The function bz_init(url, username, password) is invoked to instantiate the
-  bugz.bugzilla.Bugz instance. If this is None, the default method is used.
+  The function bz_wrap(url, username, password) is invoked to
+  instantiate the bugwrap.BugzillaWrapper instance. If this is None,
+  the default method is used.
 
   sRefPrefix is the string prefix of the git reference. If a git reference
   does not start with this, its commits will be ignored. 'refs/heads/' by default.
@@ -167,8 +172,8 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
   if logger is None:
     logger = NullLogger
 
-  if bz_init is None:
-    bz_init = init_bugzilla
+  if bz_wrap is None:
+    bz_wrap = BugzillaWrapper
 
   if sRefPrefix is None:
     sRefPrefix = sDefaultRefPrefix
@@ -181,7 +186,7 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
       raise ValueError("Bugzilla info required for status checks")
 
   # create and cache bugzilla instance
-  oBZ = bz_init(sBZUrl, sBZUser, sBZPasswd)
+  oBZ = bz_wrap(sBZUrl, sBZUser, sBZPasswd)
   # check auth
   try:
     oBZ.auth()
@@ -214,7 +219,7 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
           iBugId = int(oMatch.group("bug"))
           logger.debug("Found bug id %d" % (iBugId,))
           try:
-            sStatus = get_bug_status(oBZ, iBugId)
+            sStatus = oBZ.bug_status(iBugId)
             if sStatus is None:
               notify_and_exit("Bug %d does not exist" % (iBugId,))
           except Exception, e:
