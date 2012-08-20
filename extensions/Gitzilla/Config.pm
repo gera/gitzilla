@@ -1,4 +1,4 @@
-package Bugzilla::Extension::Striiv;
+package Bugzilla::Extension::Gitzilla;
 use strict;
 use constant NAME => 'Gitzilla';
 
