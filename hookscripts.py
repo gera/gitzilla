@@ -11,7 +11,7 @@ import re
 import sys
 import gitzilla.hooks
 import logging
-import ConfigParser
+import configparser
 
 DEFAULT = 'DEFAULT'
 
@@ -75,7 +75,7 @@ def get_bz_data(siteconfig, userconfig):
     raise ValueError("No default Bugzilla auth found. Cannot use user-auth because user_config is set to 'deny'")
 
   if not sBZUrl:
-    print "missing/incomplete bugzilla conf (no bugzilla_url)"
+    print("missing/incomplete bugzilla conf (no bugzilla_url)")
     sys.exit(1)
 
   return (sBZUrl, sBZUser, sBZPasswd)
@@ -116,11 +116,11 @@ def post_receive(aasPushes=None):
   aasPushes is a list of (sOldRev, sNewRev, sRefName) tuples, for when these
   aren't read from stdin (gerrit integration).
   """
-  siteconfig = ConfigParser.RawConfigParser()
-  siteconfig.readfp(file("/etc/gitzillarc"))
+  siteconfig = configparser.RawConfigParser()
+  siteconfig.readfp(open("/etc/gitzillarc"))
   sRepo = os.getcwd()
 
-  userconfig = ConfigParser.RawConfigParser()
+  userconfig = configparser.RawConfigParser()
   userconfig.read(os.path.expanduser("~/.gitzillarc"))
 
   (sBZUrl, sBZUser, sBZPasswd) = get_bz_data(siteconfig, userconfig)
@@ -147,8 +147,8 @@ def update():
   The user specific configuration is allowed to override the bugzilla
   username and password.
   """
-  siteconfig = ConfigParser.RawConfigParser()
-  siteconfig.readfp(file("/etc/gitzillarc"))
+  siteconfig = configparser.RawConfigParser()
+  siteconfig.readfp(open("/etc/gitzillarc"))
   sRepo = os.getcwd()
 
   logger = get_logger(siteconfig)
@@ -159,11 +159,10 @@ def update():
   bRequireBugNumber = to_bool(get_or_default(siteconfig, sRepo, "require_bug_ref", True))
   asAllowedStatuses = None
   if has_option_or_default(siteconfig, sRepo, "allowed_bug_states"):
-    asAllowedStatuses = map(lambda x: x.strip(),
-                get_or_default(siteconfig, sRepo, "allowed_bug_states").split(","))
+    asAllowedStatuses = [x.strip() for x in get_or_default(siteconfig, sRepo, "allowed_bug_states").split(",")]
 
   # and the bugzilla info.
-  userconfig = ConfigParser.RawConfigParser()
+  userconfig = configparser.RawConfigParser()
   userconfig.read(os.path.expanduser("~/.gitzillarc"))
   (sBZUrl, sBZUser, sBZPasswd) = get_bz_data(siteconfig, userconfig)
 

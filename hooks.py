@@ -6,8 +6,8 @@ hooks - git hooks provided by gitzilla.
 
 import re
 import sys
-from bugwrap import BugzillaWrapper
-from utils import get_changes, notify_and_exit
+from .bugwrap import BugzillaWrapper
+from .utils import get_changes, notify_and_exit
 from gitzilla import sDefaultSeparator, sDefaultFormatSpec, oDefaultBugRegex, sDefaultRefPrefix
 from gitzilla import NullLogger
 import traceback
@@ -113,7 +113,7 @@ def post_receive(sBZUrl, sBZUser=None, sBZPasswd=None, sFormatSpec=None, oBugReg
         logger.debug("Found bugid %d" % (iBugId,))
         try:
           oBZ.add_bug_comment(iBugId, sMessage)
-        except Exception, e:
+        except Exception as e:
           logger.exception("Could not add comment to bug %d" % (iBugId,))
 
 
@@ -222,7 +222,7 @@ def update(oBugRegex=None, asAllowedStatuses=None, sSeparator=None, sBZUrl=None,
             sStatus = oBZ.bug_status(iBugId)
             if sStatus is None:
               notify_and_exit("Bug %d does not exist" % (iBugId,))
-          except Exception, e:
+          except Exception as e:
             logger.exception("Could not get status for bug %d" % (iBugId,))
             notify_and_exit("Could not get staus for bug %d" % (iBugId,))
 

@@ -29,7 +29,7 @@ def execute(asCommand, bSplitLines=False, bIgnoreErrors=False):
     data = p.stdout.read()
   iRetCode = p.wait()
   if iRetCode and not bIgnoreErrors:
-    print >>sys.stderr, 'Failed to execute command: %s\n%s' % (asCommand, data)
+    print('Failed to execute command: %s\n%s' % (asCommand, data), file=sys.stderr)
     sys.exit(-1)
 
   return data
@@ -66,12 +66,12 @@ def get_changes(sOldRev, sNewRev, sFormatSpec, sSeparator, bIncludeDiffStat, sRe
     asAllRefs = execute(
         ['git', 'for-each-ref', '--format=%(refname)', sRefPrefix],
         bSplitLines=True)
-    asAllRefs = map(lambda x: x.strip(), asAllRefs)
-    asOtherRefs = filter(lambda x: x != sRefName, asAllRefs)
+    asAllRefs = [x.strip() for x in asAllRefs]
+    asOtherRefs = [x for x in asAllRefs if x != sRefName]
     asNotOtherRefs = execute(
         ['git', 'rev-parse', '--not'] + asOtherRefs,
         bSplitLines=True)
-    asNotOtherRefs = map(lambda x: x.strip(), asNotOtherRefs)
+    asNotOtherRefs = [x.strip() for x in asNotOtherRefs]
     asCommand += asNotOtherRefs
 
   asCommand.append(sCommitRange)
@@ -87,7 +87,7 @@ def notify_and_exit(sMsg):
   """
   notifies the error and exits.
   """
-  print """
+  print("""
 
 ======================================================================
 Cannot accept commit.
@@ -96,6 +96,6 @@ Cannot accept commit.
 
 ======================================================================
 
-""" % (sMsg,)
+""" % (sMsg,))
   sys.exit(1)
 
