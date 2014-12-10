@@ -27,16 +27,20 @@ class BugzillaWrapper(object):
 
     def auth(self):
         if not self._authed:
-            self._bz.User.login({'login': self._user,
-                                'password': self._password})
+            response = self._bz.User.login({'login': self._user,
+                                            'password': self._password})
             self._authed = True
+            self._bz_token = response['token']
 
     def bug_status(self, bugid):
         self.auth()
         bugdat = self._bz.Bug.get({'ids': [bugid],
-                                  'include_fields': ['status']})
+                                  'include_fields': ['status'],
+                                  'Bugzilla_token': self._bz_token})
         return bugdat['bugs'][0]['status']
 
     def add_bug_comment(self, bugid, comment):
         self.auth()
-        self._bz.Bug.add_comment({'id': bugid, 'comment': comment})
+        self._bz.Bug.add_comment({'id': bugid, 
+                                  'comment': comment,
+                                  'Bugzilla_token': self._bz_token})
