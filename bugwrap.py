@@ -9,6 +9,7 @@ _pybugz_xmlrpc = False
 
 from bugz.bugzilla import BugzillaProxy as BugzillaProxy
 
+
 class BugzillaWrapper(object):
     """This is a wrapper to ease using the Bugzilla XMLRPC interface
     and to insulate the other code from changes to how that interface
@@ -30,17 +31,22 @@ class BugzillaWrapper(object):
             response = self._bz.User.login({'login': self._user,
                                             'password': self._password})
             self._authed = True
-            self._bz_token = response['token']
+            if 'token' in response:
+              self._bz_token = response['token']
 
     def bug_status(self, bugid):
         self.auth()
-        bugdat = self._bz.Bug.get({'ids': [bugid],
-                                  'include_fields': ['status'],
-                                  'Bugzilla_token': self._bz_token})
+        params = {'ids': [bugid], 'include_fields': ['status']}
+        if hasattr(self, '_bz_token'):
+          params['Bugzilla_token'] = self._bz_token
+
+        bugdat = self._bz.Bug.get(params)
         return bugdat['bugs'][0]['status']
 
     def add_bug_comment(self, bugid, comment):
         self.auth()
-        self._bz.Bug.add_comment({'id': bugid, 
-                                  'comment': comment,
-                                  'Bugzilla_token': self._bz_token})
+        params = {'id': bugid, 'comment': comment}
+        if hasattr(self, '_bz_token'):
+          params['Bugzilla_token'] = self._bz_token
+
+        self._bz.Bug.add_comment(params)
