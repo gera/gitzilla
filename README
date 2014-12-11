@@ -293,9 +293,10 @@ This combination has been tested with Bugzilla 4.4.6 & 4.2.11
 
 If you wish to use python 2:
   - Python (tested with 2.6.4, should work with >=2.5)
-  - pybugz (tested with 0.8.0)
+  - Pybugz (tested with 0.8.0)
+  - Gitzilla <= 2.0
 
-This python 2 combination works with Bugzilla 3.0.11 and pybugz 0.9.3 should support up to Bugzilla 4.4.2
+This python 2 combination works with Bugzilla 3.0.11, and with pybugz 0.9.3 it may support up to Bugzilla 4.4.2
 
 The excellent pybugz can be obtained from http://github.com/williamh/pybugz
 and http://github.com/williamh/pybugz/releases
