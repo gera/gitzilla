@@ -1,7 +1,5 @@
 
-========
-GitZilla
-========
+# GitZilla
 
 GitZilla is Python magic to support Git-Bugzilla integration. There are
 various ways of using GitZilla.
@@ -12,8 +10,7 @@ everyone - home to the the "official" or the "central" repository.
 There's a mailing list for GitZilla now, at gitzilla-talk@googlegroups.com
 
 
-Summary of features
-...................
+## Summary of features
 
 GitZilla might be the right tool if you want to::
 
@@ -38,11 +35,9 @@ With the above capabilities, GitZilla allows for::
   - Configurable regexes for matching bug IDs in commit messages.
 
 
-Usage
-.....
+## Usage
 
-Simple ready scripts
---------------------
+### Simple ready scripts
 
 To quickly start using GitZilla:
 
@@ -75,8 +70,7 @@ To quickly start using GitZilla:
   * Commit away!
 
 
-Custom GitZilla
----------------
+### Custom GitZilla
 
 If you need the hooks to do other stuff apart from just the Bugzilla
 integration, you could write your hook as a Python script and leave the
@@ -122,8 +116,7 @@ Look at the module help for gitzilla.hooks for more information.
 
 
 
-Configuration
-.............
+## Configuration
 
 GitZilla uses a global configuration file (at /etc/gitzillarc) as well as
 per-user configuration files (at ~/.gitzillarc). All the configuration options
@@ -155,14 +148,12 @@ in a [DEFAULT] section.
 
 The user specific files are entirely optional.
 
-Mandatory parameters
---------------------
+### Mandatory parameters
 
   - bugzilla_url
 
 
-Optional parameters
--------------------
+### Optional parameters
 
   - bugzilla_user
 
@@ -222,10 +213,10 @@ Optional parameters
 
   - git_ref_prefix
         
-		the string which must start a git reference for its commits to be
-		processed. Defaults to 'refs/heads/' so that we don't process 'tags/' and
-		run the risk of processing many commits multiple times. You can set it
-		to the empty string to process all git references.
+        the string which must start a git reference for its commits to be
+        processed. Defaults to 'refs/heads/' so that we don't process 'tags/'
+        and run the risk of processing many commits multiple times. You can
+        set it to the empty string to process all git references.
   
   - logfile
 
@@ -237,8 +228,7 @@ Optional parameters
         can be ``info`` or ``debug``. Defaults to ``debug``.
 
 
-Security note
--------------
+### Security note
 
 Note that the global config would be readable by all and may contain a bugzilla
 credentials. If you think this is a problem, you may rely on per-user auth.
@@ -280,8 +270,7 @@ To summarize:
 *cookies are no longer used since Bugzilla 4.4.3
 
 
-Requirements
-............
+## Requirements
 
 To install and run GitZilla, you need:
 
@@ -302,8 +291,7 @@ The excellent pybugz can be obtained from http://github.com/williamh/pybugz
 and http://github.com/williamh/pybugz/releases
 
 
-Download
-........
+## Download
 
 GitZilla is hosted at GitHub : http://github.com/gera/gitzilla
 
@@ -313,8 +301,7 @@ The download page contains a .deb which should work on Debian and Ubuntu
 systems.
 
 
-Mailing list
-............
+## Mailing list
 
 The official GitZilla mailing list: gitzilla-talk@googlegroups.com
 
