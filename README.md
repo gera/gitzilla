@@ -1,6 +1,8 @@
 
 # GitZilla
 
+**NOTE** : This project is no longer actively maintained.
+
 GitZilla is Python magic to support Git-Bugzilla integration. There are
 various ways of using GitZilla.
 
