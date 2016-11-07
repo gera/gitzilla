@@ -11,8 +11,7 @@ import re
 import sys
 import gitzilla.hooks
 import logging
-import ConfigParser
-import bugz
+import configparser
 
 DEFAULT = 'DEFAULT'
 
@@ -49,34 +48,37 @@ def bz_auth_from_config(config, sRepo):
 def get_bz_data(siteconfig, userconfig):
   sRepo = os.getcwd()
 
-  bAllowDefaultAuth = False
-
   sBZUrl = get_or_default(siteconfig, sRepo, "bugzilla_url")
-  if not sBZUrl:
-    print "missing/incomplete bugzilla conf (no bugzilla_url)"
-    sys.exit(1)
+  if sBZUrl is None:
+    sBZUrl = get_or_default(userconfig, sRepo, "bugzilla_url")
 
   sUserOption = get_or_default(siteconfig, sRepo, "user_config", "allow")
   sUserOption = {"deny": "deny", "force": "force"}.get(sUserOption, "allow")
 
-  (sBZUser, sBZPasswd) = bz_auth_from_config(userconfig, sRepo)
+  sBZUser, sBZPasswd = None, None
 
-  # ignore auth from site-config if "force"
-  if sUserOption == "force":
-    bAllowDefaultAuth = False
-
-  # for 'allow', get the auth from user config but allow fallback
-  if sUserOption == "allow":
-    bAllowDefaultAuth = True
-
-  # ignore auth from user config is "deny"
-  if sUserOption == "deny":
+  # If "force", site config credentials irrelevant because they must not be used.
+  if sUserOption != "force":
     (sBZUser, sBZPasswd) = bz_auth_from_config(siteconfig, sRepo)
-    if None in (sBZUser, sBZPasswd):
-      raise ValueError("No default Bugzilla auth found. Cannot use user-auth because user_config is set to 'deny'")
 
-  return (sBZUrl, sBZUser, sBZPasswd, bAllowDefaultAuth)
+  # If "deny", user config credentials irrelevant because they must not be used.
+  if sUserOption != "deny":
+    (uuser, upasswd) = bz_auth_from_config(userconfig, sRepo)
+    if (sUserOption == "force"):
+      # If "force", user config credentials MUST be used
+      sBZUser, sBZPasswd = uuser, upasswd
+    elif (sUserOption == "allow") and not (None in (uuser, upasswd)):
+      # If "allow", only use user config credentials if there are any.
+      sBZUser, sBZPasswd = uuser, upasswd
+  elif (None in (sBZUser, sBZPasswd)):
+    # User config may not be used, and that includes the cookie jar, if any.
+    raise ValueError("No default Bugzilla auth found. Cannot use user-auth because user_config is set to 'deny'")
 
+  if not sBZUrl:
+    print("missing/incomplete bugzilla conf (no bugzilla_url)")
+    sys.exit(1)
+
+  return (sBZUrl, sBZUser, sBZPasswd)
 
 
 def get_logger(siteconfig):
@@ -102,45 +104,6 @@ def get_bug_regex(siteconfig):
   return oBugRegex
 
 
-def make_bz_init(siteconfig, bAllowDefaultAuth):
-  # return a bz_init function which does the right thing.
-
-  def bz_init(sBZUrl, sBZUser, sBZPasswd):
-    # if username/passwd are none, then modify the Bugz instance so that
-    # Bugz.get_input and getpass.getpass get the username and passwd
-    # from the siteconfig.
-    if sBZUrl is None:
-      raise ValueError("No Bugzilla URL specified")
-
-    sSiteUser = sBZUser
-    sSitePasswd = sBZPasswd
-
-    sRepo = os.getcwd()
-
-    if None in (sBZUser, sBZPasswd):
-      if bAllowDefaultAuth:
-        # get data from siteconfig
-        (sSiteUser, sSitePasswd) = bz_auth_from_config(siteconfig, sRepo)
-
-    oBZ = bugz.bugzilla.Bugz(sBZUrl, user=sBZUser, password=sBZPasswd)
-
-    def auth_error(*args):
-      raise ValueError("no Bugzilla auth found!")
-
-    if sSiteUser is None:
-      oBZ.get_input = auth_error
-    else:
-      oBZ.get_input = lambda prompt: sSiteUser
-    import getpass
-    if sSitePasswd is None:
-      getpass.getpass = auth_error
-    else:
-      getpass.getpass = lambda: sSitePasswd
-    return oBZ
-
-  return bz_init
-
-
 def post_receive(aasPushes=None):
   """
   The gitzilla-post-receive hook script.
@@ -153,14 +116,14 @@ def post_receive(aasPushes=None):
   aasPushes is a list of (sOldRev, sNewRev, sRefName) tuples, for when these
   aren't read from stdin (gerrit integration).
   """
-  siteconfig = ConfigParser.RawConfigParser()
-  siteconfig.readfp(file("/etc/gitzillarc"))
+  siteconfig = configparser.RawConfigParser()
+  siteconfig.readfp(open("/etc/gitzillarc"))
   sRepo = os.getcwd()
 
-  userconfig = ConfigParser.RawConfigParser()
+  userconfig = configparser.RawConfigParser()
   userconfig.read(os.path.expanduser("~/.gitzillarc"))
 
-  (sBZUrl, sBZUser, sBZPasswd, bAllowDefaultAuth) = get_bz_data(siteconfig, userconfig)
+  (sBZUrl, sBZUser, sBZPasswd) = get_bz_data(siteconfig, userconfig)
 
   logger = get_logger(siteconfig)
   oBugRegex = get_bug_regex(siteconfig)
@@ -169,10 +132,8 @@ def post_receive(aasPushes=None):
   sFormatSpec = get_or_default(siteconfig, sRepo, "formatspec")
   bIncludeDiffStat = to_bool(get_or_default(siteconfig, sRepo, "include_diffstat", True))
 
-  bz_init = make_bz_init(siteconfig, bAllowDefaultAuth)
-
   gitzilla.hooks.post_receive(sBZUrl, sBZUser, sBZPasswd, sFormatSpec,
-                              oBugRegex, sSeparator, logger, bz_init,
+                              oBugRegex, sSeparator, logger, None,
                               sRefPrefix, bIncludeDiffStat, aasPushes)
 
 
@@ -186,8 +147,8 @@ def update():
   The user specific configuration is allowed to override the bugzilla
   username and password.
   """
-  siteconfig = ConfigParser.RawConfigParser()
-  siteconfig.readfp(file("/etc/gitzillarc"))
+  siteconfig = configparser.RawConfigParser()
+  siteconfig.readfp(open("/etc/gitzillarc"))
   sRepo = os.getcwd()
 
   logger = get_logger(siteconfig)
@@ -198,18 +159,15 @@ def update():
   bRequireBugNumber = to_bool(get_or_default(siteconfig, sRepo, "require_bug_ref", True))
   asAllowedStatuses = None
   if has_option_or_default(siteconfig, sRepo, "allowed_bug_states"):
-    asAllowedStatuses = map(lambda x: x.strip(),
-                get_or_default(siteconfig, sRepo, "allowed_bug_states").split(","))
+    asAllowedStatuses = [x.strip() for x in get_or_default(siteconfig, sRepo, "allowed_bug_states").split(",")]
 
   # and the bugzilla info.
-  userconfig = ConfigParser.RawConfigParser()
+  userconfig = configparser.RawConfigParser()
   userconfig.read(os.path.expanduser("~/.gitzillarc"))
-  (sBZUrl, sBZUser, sBZPasswd, bAllowDefaultAuth) = get_bz_data(siteconfig, userconfig)
-
-  bz_init = make_bz_init(siteconfig, bAllowDefaultAuth)
+  (sBZUrl, sBZUser, sBZPasswd) = get_bz_data(siteconfig, userconfig)
 
   gitzilla.hooks.update(oBugRegex, asAllowedStatuses, sSeparator, sBZUrl,
-                        sBZUser, sBZPasswd, logger, bz_init, sRefPrefix,
+                        sBZUser, sBZPasswd, logger, None, sRefPrefix,
                         bRequireBugNumber)
 
 

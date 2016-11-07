@@ -138,7 +138,7 @@
 # sample configuration:
 #
 # [/path/to/repository/.git]
-# bugzilla_url: https://repo.example.com/bugzilla/
+# bugzilla_url: https://repo.example.com/bugzilla/xmlrpc.cgi
 # bugzilla_user: foo@example.com
 # bugzilla_password: barbarblah
 # allowed_bug_states: NEW, ASSIGNED, REOPENED

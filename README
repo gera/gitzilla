@@ -50,10 +50,11 @@ To quickly start using GitZilla:
     Debian/Ubuntu systems. Otherwise, just unpack the source and install in
     the usual setuptools way::
 
-        sudo python setup.py install
+        sudo python3 ./setup.py install
 
-  * Switch to the hooks directory (/path/to/repository/.git/hooks) and delete
-    the ``post-receive`` and ``update`` hooks.
+  * Switch to the hooks directory 
+    (/path/to/central/repository/Example.git/hooks) 
+    and delete the ``post-receive`` and ``update`` hooks.
 
   * Link (or copy) the gitzilla provided hooks::
 
@@ -63,8 +64,8 @@ To quickly start using GitZilla:
   * Read and edit the config file at /etc/gitzillarc. A simple (and sufficient
     for most cases) configuration is something like::
 
-        [/path/to/repository/.git]
-        bugzilla_url: https://repo.example.com/bugzilla/
+        [/path/to/repository/Example.git]
+        bugzilla_url: https://repo.example.com/bugzilla/xmlrpc.cgi
         bugzilla_user: foo@example.com
         bugzilla_password: blahblah
         allowed_bug_states: NEW, ASSIGNED, REOPENED
@@ -120,11 +121,6 @@ strings.
 Look at the module help for gitzilla.hooks for more information.
 
 
-Down and dirty
---------------
-
-This is an internal-only mode for now. More info when this is stable.
-
 
 Configuration
 .............
@@ -144,7 +140,7 @@ looks like::
     allowed_bug_states: NEW, ASSIGNED, REOPENED
 
     [/path/to/repository/.git]
-    bugzilla_url: https://repo.example.com/bugzilla/
+    bugzilla_url: https://repo.example.com/bugzilla/xmlrpc.cgi
     bugzilla_user: foo@example.com
     bugzilla_password: blahblah
     logfile: /var/log/gitzilla.log
@@ -281,6 +277,7 @@ To summarize:
     config), regardless of the ``allowed_bug_states`` option. This is a change
     in behaviour from version 1.0.
 
+*cookies are no longer used since Bugzilla 4.4.3
 
 
 Requirements
@@ -288,15 +285,21 @@ Requirements
 
 To install and run GitZilla, you need:
 
+  - Python 3 (tested with 3.4.0)
+  - pybugz >= 0.11.1
+
+This combination has been tested with Bugzilla 4.4.6 & 4.2.11
+
+
+If you wish to use python 2:
   - Python (tested with 2.6.4, should work with >=2.5)
-  - pybugz (tested with 0.8.0)
+  - Pybugz (tested with 0.8.0)
+  - Gitzilla <= 2.0
 
-Of course, to make it useful you also need a Bugzilla installation somewhere
-(not required to be on the same machine). GitZilla has been tested with
-Bugzilla 3.0.11 and should work with any Bugzilla version supported by pybugz.
+This python 2 combination works with Bugzilla 3.0.11, and with pybugz 0.9.3 it may support up to Bugzilla 4.4.2
 
-The excellent pybugz can be obtained from http://github.com/ColdWind/pybugz/
-and http://github.com/ColdWind/pybugz/downloads/
+The excellent pybugz can be obtained from http://github.com/williamh/pybugz
+and http://github.com/williamh/pybugz/releases
 
 
 Download
